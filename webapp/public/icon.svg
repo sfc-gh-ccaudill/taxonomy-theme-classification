@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Notes routed into a taxonomy">
+  <!-- Three free-text notes on the left, funnelling into a taxonomy tree on the right. -->
+  <g fill="none" stroke="#29B5E8" stroke-width="1.6" stroke-linecap="round">
+    <!-- note cards -->
+    <rect x="2.5" y="4.5" width="9" height="6.5" rx="1.4" />
+    <rect x="2.5" y="12.75" width="9" height="6.5" rx="1.4" />
+    <rect x="2.5" y="21" width="9" height="6.5" rx="1.4" />
+  </g>
+  <g stroke="#7DD3F0" stroke-width="1.1" stroke-linecap="round">
+    <path d="M4.6 7h4.8M4.6 9h2.9" />
+    <path d="M4.6 15.25h4.8M4.6 17.25h2.9" />
+    <path d="M4.6 23.5h4.8M4.6 25.5h2.9" />
+  </g>
+  <!-- funnel into the single classified trunk -->
+  <g fill="none" stroke="#29B5E8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M11.5 7.75h3.2a2 2 0 0 1 2 2v4.5" />
+    <path d="M11.5 16h5.2" />
+    <path d="M11.5 24.25h3.2a2 2 0 0 0 2-2v-4.5" />
+  </g>
+  <!-- taxonomy nodes: category, theme, subtheme -->
+  <g fill="#11567F">
+    <circle cx="22" cy="9.75" r="2.6" />
+    <circle cx="22" cy="16" r="2.6" />
+    <circle cx="22" cy="22.25" r="2.6" />
+  </g>
+  <g fill="none" stroke="#11567F" stroke-width="1.6" stroke-linecap="round">
+    <path d="M16.7 16h2.7" />
+    <path d="M19.4 9.75h0M18.1 12.6l1.5-1.2" />
+    <path d="M18.1 19.4l1.5 1.2" />
+  </g>
+  <!-- the enum boundary: a closed bracket the labels cannot leave -->
+  <path d="M27.6 6.5a5 5 0 0 1 0 19" fill="none" stroke="#29B5E8" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="0.1 3.2" />
+</svg>

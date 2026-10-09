@@ -1,0 +1,11 @@
+# Internal working notes, kept local
+use_case.md
+.snowflake
+docs/PROJECT_OVERVIEW.md
+docs/runbook.html
+
+# OS and editor
+.DS_Store
+
+# Logs
+*.log

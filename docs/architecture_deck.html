@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="snowflake-source" content="cortex-agent-authored" />
+<title>PAN Lines Theme Pipeline: Architecture, Approach, Workflow</title>
+<script type="application/json" id="snowflake-report-metadata">
+{
+  "generated": "2026-10-09",
+  "intent": "Presenter slide deck for the PAN Lines theme extraction pipeline: architecture, approach, workflow, measured results",
+  "dataSources": [
+    { "type": "file", "path": "docs/architecture.md", "notes": "architecture, design principles, lifecycle" },
+    { "type": "file", "path": "docs/results.md", "notes": "2026-10-09 measured v001 vs revision and candidate results" },
+    { "type": "file", "path": "webapp/README.md", "notes": "app design" },
+    { "type": "file", "path": "sql/00_setup.sql..sql/06_app_support.sql", "notes": "object names, gate thresholds (0.70 floor, 0.10 segment regression on segments with n>=20, 0.01 error rate), task schedule, alert" }
+  ],
+  "sections": [
+    { "id": "s-title", "title": "Title" },
+    { "id": "s-today", "title": "The workflow: four steps", "dataSources": [{ "type": "file", "path": "docs/architecture.md" }] },
+    { "id": "s-asks", "title": "What a production pipeline needs", "dataSources": [{ "type": "file", "path": "docs/architecture.md" }] },
+    { "id": "s-arch", "title": "Overview: three sections, one schema", "dataSources": [{ "type": "file", "path": "sql/03_pipeline.sql" }] },
+    { "id": "s-sec1", "title": "Section 1: Classification" },
+    { "id": "s-idea", "title": "The central idea: every label is a valid subtheme", "dataSources": [{ "type": "file", "path": "docs/architecture.md" }, { "type": "file", "path": "sql/02_taxonomy.sql" }] },
+    { "id": "s-leaf", "title": "Leaf only, derive the rest, escape hatch" },
+    { "id": "s-task", "title": "Why a task, not a dynamic table" },
+    { "id": "s-sec2", "title": "Section 2: Taxonomy governance" },
+    { "id": "s-v1", "title": "An LLM drafts v1", "dataSources": [{ "type": "file", "path": "sql/02_taxonomy.sql" }, { "type": "table", "name": "PAN_DEMO_DB.PIPELINE.TAXONOMY_VERSION" }],
+      "producerNotes": "v001: openai-gpt-5.2, 163-note design sample, 8 categories / 23 themes / 78 subthemes (queried 2026-10-09)." },
+    { "id": "s-taxonomy", "title": "A version registry for the taxonomy", "dataSources": [{ "type": "file", "path": "sql/02_taxonomy.sql" }] },
+    { "id": "s-gaps", "title": "Gaps as revision signal", "dataSources": [{ "type": "file", "path": "sql/05_revision_loop.sql" }, { "type": "file", "path": "webapp/README.md" }] },
+    { "id": "s-loop", "title": "The revision loop", "dataSources": [{ "type": "file", "path": "sql/05_revision_loop.sql" }] },
+    { "id": "s-sec3", "title": "Section 3: Evaluation and operations" },
+    { "id": "s-eval", "title": "Evaluation approach", "dataSources": [{ "type": "file", "path": "sql/04_evaluation.sql" }] },
+    { "id": "s-gate", "title": "Eval gate and regression alert", "dataSources": [{ "type": "file", "path": "sql/04_evaluation.sql" }, { "type": "file", "path": "sql/05_revision_loop.sql" }, { "type": "table", "name": "PAN_DEMO_DB.PIPELINE.EVAL_GATE_CONFIG" }],
+      "producerNotes": "Baseline is the champion's latest eval (no hand-set baseline since the register/evaluate/promote redesign)." },
+    { "id": "s-promote", "title": "Register, evaluate, promote", "dataSources": [{ "type": "file", "path": "sql/04_evaluation.sql" }, { "type": "table", "name": "PAN_DEMO_DB.PIPELINE.PROMOTION_LOG" }, { "type": "view", "name": "PAN_DEMO_DB.PIPELINE.EVAL_GATE" }],
+      "producerNotes": "Card numbers are the 2026-10-09 verification on PAN_DEMO_DB.PIPELINE: haiku_enum_v1/v001 0.830, haiku_v2_tax_v001 0.840 PASS, haiku_v1_tax_v002 (hand-edited fork of v001 with Transportation Barrier To Care added) 0.885 PASS, unplaceable gold 9 -> 1, Access 0.750 -> 0.889; rollback to v001 FAIL on Access, promoted with override. ~1.07 credits per 200-encounter gold run from RUN_COST. These differ from s-results, which is the loop-generated 79-subtheme revision." },
+    { "id": "s-results", "title": "Measured results", "dataSources": [{ "type": "file", "path": "docs/results.md" }],
+      "producerNotes": "Numbers are the 2026-10-09 run on PAN_DEMO_DB.PIPELINE, 200 gold encounters. Segment bars from EVAL_SEGMENT_DETAIL; the Gap scenario bar is test data from PAN_DEMO_DB.SYNTHETIC_DATA.TEST_SCENARIO_SCORECARD. Bar geometry: y = 330 - v*300. Re-running moves them." },
+    { "id": "s-cost", "title": "Cost monitoring", "dataSources": [{ "type": "file", "path": "docs/results.md" }, { "type": "file", "path": "sql/04_evaluation.sql" }] },
+    { "id": "s-app", "title": "The app", "dataSources": [{ "type": "file", "path": "webapp/README.md" }, { "type": "file", "path": "webapp/lib/queries.ts" }] },
+    { "id": "s-next", "title": "Demo vs production" }
+  ]
+}
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --ink: #0F1B2D; --ink2: #334155; --muted: #64748B; --line: #D8E1EA;
+    --page: #E9EEF4; --paper: #FFFFFF;
+    --blue: #29B5E8; --navy: #11567F; --blue-50: #E9F7FD;
+    --purple: #7254A3; --purple-50: #F2EEF9;
+    --orange: #E8890C; --orange-50: #FFF4E5;
+    --green: #1C8F5F; --green-50: #E7F6EF;
+    --red: #C73E3E; --red-50: #FCECEC;
+    --grey-50: #F4F6F9; --grey: #94A3B8;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--page); color: var(--ink); overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  svg { max-width: 100%; height: auto; display: block; }
+
+  /* 16:9 stage, scaled to fit by script */
+  .stage {
+    position: absolute; top: 50%; left: 50%; width: 1280px; height: 720px;
+    transform: translate(-50%, -50%); transform-origin: center center;
+    background: var(--paper); box-shadow: 0 10px 40px rgba(15, 27, 45, .12); border-radius: 6px; overflow: hidden;
+  }
+  .slide { position: absolute; inset: 0; padding: 48px 72px 56px; display: none; flex-direction: column; }
+  .slide.active { display: flex; }
+  .slide::before {
+    content: ""; position: absolute; left: 0; top: 0; height: 6px; width: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--navy));
+  }
+  .foot {
+    position: absolute; left: 72px; right: 72px; bottom: 20px; display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--muted);
+  }
+  .kicker { font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--navy); margin: 0 0 8px; }
+  h1 { font-size: 52px; line-height: 1.05; margin: 0 0 20px; letter-spacing: -.02em; }
+  h2 { font-size: 34px; line-height: 1.12; margin: 0; letter-spacing: -.01em; }
+  .lede { font-size: 18px; color: var(--ink2); margin: 10px 0 0; max-width: 1040px; line-height: 1.4; }
+  .body { flex: 1; min-height: 0; margin-top: 24px; position: relative; }
+  .mono, code { font-family: var(--mono); font-size: .92em; color: var(--navy); }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; }
+  .center-v { display: flex; flex-direction: column; justify-content: center; }
+
+  /* SVG vocabulary */
+  .t { font: 600 14px -apple-system, system-ui, sans-serif; fill: var(--ink); text-anchor: middle; }
+  .s { font: 500 10px var(--mono); fill: var(--navy); text-anchor: middle; }
+  .g { font: 400 10.5px -apple-system, system-ui, sans-serif; fill: var(--muted); text-anchor: middle; }
+  .lbl { font: 700 11px -apple-system, system-ui, sans-serif; letter-spacing: .1em; fill: var(--muted); }
+  .txt { font: 400 12.5px -apple-system, system-ui, sans-serif; fill: var(--ink2); }
+  .start { text-anchor: start; }
+  .nd rect, .nd polygon, .nd circle { fill: var(--f); stroke: var(--k); stroke-width: 1.5; }
+  .nd.blue   { --f: var(--blue-50);   --k: var(--blue); }
+  .nd.navy   { --f: #DDEBF3;          --k: var(--navy); }
+  .nd.purple { --f: var(--purple-50); --k: var(--purple); }
+  .nd.orange { --f: var(--orange-50); --k: var(--orange); }
+  .nd.green  { --f: var(--green-50);  --k: var(--green); }
+  .nd.red    { --f: var(--red-50);    --k: var(--red); }
+  .nd.grey   { --f: var(--grey-50);   --k: var(--grey); }
+  .nd.white  { --f: #FFFFFF;          --k: var(--line); }
+  .nd.dash rect { stroke-dasharray: 5 4; }
+  .e { fill: none; stroke: #7A8BA0; stroke-width: 1.6; marker-end: url(#ah); }
+  .e.blue   { stroke: var(--blue);   marker-end: url(#ah-blue); }
+  .e.orange { stroke: var(--orange); marker-end: url(#ah-orange); }
+  .e.green  { stroke: var(--green);  marker-end: url(#ah-green); }
+  .e.purple { stroke: var(--purple); marker-end: url(#ah-purple); }
+  .e.red    { stroke: var(--red);    marker-end: url(#ah-red); }
+  .e.dash   { stroke-dasharray: 5 4; }
+  .e.none   { marker-end: none; }
+
+  /* Cards and lists */
+  .cards { display: grid; gap: 16px; }
+  .card { border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; background: #FBFCFE; }
+  .card h3 { margin: 0 0 6px; font-size: 16px; }
+  .card p { margin: 0; font-size: 14px; color: var(--ink2); line-height: 1.4; }
+  .card.blue { border-color: #BFE6F6; background: var(--blue-50); }
+  .card.green { border-color: #BFE3D0; background: var(--green-50); }
+  .card.orange { border-color: #F6D3A3; background: var(--orange-50); }
+  .card.red { border-color: #F0C8C8; background: var(--red-50); }
+  .callout { font-size: 15px; color: var(--ink2); border-left: 4px solid var(--blue); padding: 6px 0 6px 14px; margin-top: 14px; }
+
+  /* Title slide */
+  .title-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 32px; align-items: center; height: 100%; }
+  .title-sub { font-size: 21px; color: var(--ink2); line-height: 1.4; margin: 0 0 28px; max-width: 600px; }
+  .title-meta { font-size: 14px; color: var(--muted); }
+  .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; margin: 0 6px 6px 0; background: var(--blue-50); color: var(--navy); border: 1px solid #BFE6F6; }
+
+  /* Asks map */
+  .map { display: grid; grid-template-columns: 300px 56px 1fr; row-gap: 12px; align-items: center; }
+  .ask { display: flex; align-items: center; gap: 12px; background: var(--grey-50); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-weight: 600; font-size: 15px; height: 100%; }
+  .ask svg { width: 26px; height: 26px; flex: none; stroke: var(--navy); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .ans { background: var(--blue-50); border: 1px solid #BFE6F6; border-radius: 10px; padding: 10px 16px; height: 100%; }
+  .ans .mono { font-size: 13px; font-weight: 600; }
+  .ans div { font-size: 14px; color: var(--ink2); margin-top: 3px; line-height: 1.35; }
+
+  /* Code */
+  pre.code { font-family: var(--mono); font-size: 12px; line-height: 1.5; background: #F7F9FC; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin: 0; color: var(--ink2); white-space: pre; overflow: hidden; }
+  pre.code b { color: var(--purple); font-weight: 600; }
+  pre.code i { color: var(--muted); font-style: normal; }
+  pre.code em { color: var(--orange); font-style: normal; font-weight: 600; }
+
+  /* Big stats */
+  .stat { font-size: 88px; font-weight: 800; line-height: 1; color: var(--blue); letter-spacing: -.03em; }
+  .stat-sm { font-size: 44px; font-weight: 800; line-height: 1; letter-spacing: -.02em; }
+  .stat-label { font-size: 16px; font-weight: 600; margin-top: 6px; }
+
+  /* Controls (outside the stage) */
+  .controls {
+    position: fixed; right: 16px; bottom: 14px; display: flex; gap: 6px; align-items: center;
+    font-size: 13px; color: var(--muted); opacity: .35; transition: opacity .2s;
+  }
+  .controls:hover { opacity: 1; }
+  .controls button {
+    border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 8px; padding: 5px 10px;
+    font: inherit; cursor: pointer;
+  }
+  .progress { position: fixed; left: 0; bottom: 0; height: 3px; background: var(--blue); transition: width .2s; }
+  .notes-panel {
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: 54px; width: min(900px, 94vw); max-height: 32vh; overflow: auto;
+    background: #FFFDF6; border: 1px solid #EBDDB4; border-radius: 10px; padding: 14px 18px; font-size: 15px; line-height: 1.5;
+    color: var(--ink2); box-shadow: 0 8px 30px rgba(0,0,0,.12); display: none;
+  }
+  .notes-panel.show { display: block; }
+  .notes-panel h4 { margin: 0 0 6px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #9A7B1F; }
+  aside.notes { display: none; }
+
+  /* Sections: color cue on the top bar, kicker and footer tracker */
+  .slide[data-sec="2"]::before { background: linear-gradient(90deg, #F2B259, var(--orange)); }
+  .slide[data-sec="3"]::before { background: linear-gradient(90deg, #5CC497, var(--green)); }
+  .slide[data-sec="2"] .kicker { color: #B26A08; }
+  .slide[data-sec="3"] .kicker { color: var(--green); }
+  .trk { display: flex; gap: 18px; }
+  .trk b { font-weight: 600; color: #B4C0CE; }
+  .trk b.on { color: var(--navy); }
+  .slide[data-sec="2"] .trk b.on { color: #B26A08; }
+  .slide[data-sec="3"] .trk b.on { color: var(--green); }
+  .chip { display: inline-block; font: 700 10px -apple-system, system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; margin-left: 8px; vertical-align: 1px; }
+  .chip.c1 { background: #fff; color: var(--navy); border: 1px solid #9FD8EF; }
+  .chip.c2 { background: var(--orange-50); color: #B26A08; border: 1px solid #F6D3A3; }
+  .chip.c3 { background: var(--green-50); color: var(--green); border: 1px solid #BFE3D0; }
+  .pill.c2 { background: var(--orange-50); color: #B26A08; border-color: #F6D3A3; }
+  .pill.c3 { background: var(--green-50); color: var(--green); border-color: #BFE3D0; }
+
+  /* Section dividers */
+  .divider { justify-content: center; padding-bottom: 150px; }
+  .div-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; }
+  .div-num { font-size: 120px; font-weight: 800; line-height: .9; letter-spacing: -.04em; margin-bottom: 10px; color: var(--blue); }
+  .slide[data-sec="2"] .div-num { color: var(--orange); }
+  .slide[data-sec="3"] .div-num { color: var(--green); }
+  .divider h1 { margin-bottom: 14px; }
+  .divider .title-sub { margin: 0; }
+  .toc { list-style: none; margin: 0; padding: 0; }
+  .toc li { padding: 8px 0 8px 18px; border-left: 3px solid #9FD8EF; font-size: 15px; color: var(--ink2); line-height: 1.35; }
+  .toc li + li { margin-top: 10px; }
+  .toc li b { display: block; color: var(--ink); font-size: 17px; margin-bottom: 2px; }
+  .slide[data-sec="2"] .toc li { border-left-color: #F6D3A3; }
+  .slide[data-sec="3"] .toc li { border-left-color: #BFE3D0; }
+  .toc-h { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 14px; }
+  .roadmap { position: absolute; left: 72px; right: 72px; bottom: 54px; }
+
+  @media print {
+    @page { size: 1280px 720px; margin: 0; }
+    html, body { overflow: visible; height: auto; background: #fff; }
+    .stage { position: static; transform: none !important; box-shadow: none; border-radius: 0; width: 1280px; height: auto; overflow: visible; }
+    .slide { display: flex !important; position: relative; width: 1280px; height: 720px; break-after: page; page-break-after: always; }
+    .controls, .progress, .notes-panel { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Shared SVG defs: arrowheads and patterns referenced by every diagram -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7A8BA0"/></marker>
+    <marker id="ah-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#29B5E8"/></marker>
+    <marker id="ah-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#E8890C"/></marker>
+    <marker id="ah-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1C8F5F"/></marker>
+    <marker id="ah-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7254A3"/></marker>
+    <marker id="ah-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C73E3E"/></marker>
+    <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="6" height="6" fill="#EEF1F5"/><line x1="0" y1="0" x2="0" y2="6" stroke="#B4C0CE" stroke-width="2.5"/>
+    </pattern>
+  </defs>
+</svg>
+
+<div class="stage" id="stage">
+
+<!-- ============================== 1. TITLE ============================== -->
+<section class="slide" id="s-title">
+  <div class="title-grid">
+    <div>
+      <p class="kicker">PAN Lines NLP classification &middot; built in Snowflake</p>
+      <h1>A governed theme pipeline for nurse call notes</h1>
+      <p class="title-sub">Post-discharge nurse call notes, classified into a controlled taxonomy. Versioned, evaluated, costed, and improvable, all as ordinary Snowflake objects.</p>
+      <div style="margin-bottom:22px">
+        <span class="pill">1 &middot; Classification</span><span class="pill c2">2 &middot; Taxonomy governance</span><span class="pill c3">3 &middot; Evaluation and operations</span>
+      </div>
+      <div class="title-meta">Chris Caudill, Snowflake &middot; October 2026</div>
+    </div>
+    <svg viewBox="0 0 520 400" role="img" aria-label="Notes pass through an enum gate into a controlled taxonomy tree">
+      <!-- note cards -->
+      <g transform="translate(14,70)">
+        <rect x="24" y="0" width="130" height="160" rx="10" fill="#F4F6F9" stroke="#D8E1EA"/>
+        <rect x="12" y="12" width="130" height="160" rx="10" fill="#FAFBFC" stroke="#D8E1EA"/>
+        <rect x="0" y="24" width="130" height="160" rx="10" fill="#FFFFFF" stroke="#B9C6D4" stroke-width="1.5"/>
+        <rect x="16" y="46" width="70" height="7" rx="3" fill="#29B5E8"/>
+        <rect x="16" y="66" width="98" height="6" rx="3" fill="#D8E1EA"/>
+        <rect x="16" y="82" width="86" height="6" rx="3" fill="#D8E1EA"/>
+        <rect x="16" y="98" width="92" height="6" rx="3" fill="#D8E1EA"/>
+        <rect x="16" y="114" width="64" height="6" rx="3" fill="#D8E1EA"/>
+        <rect x="16" y="130" width="80" height="6" rx="3" fill="#D8E1EA"/>
+        <rect x="16" y="146" width="54" height="6" rx="3" fill="#D8E1EA"/>
+      </g>
+      <path class="e" d="M178,180 L204,180"/>
+      <!-- enum gate -->
+      <g class="nd purple"><polygon points="318,180 290,228 234,228 206,180 234,132 290,132"/></g>
+      <text x="262" y="178" style="font:700 16px var(--mono);fill:#7254A3;text-anchor:middle">enum</text>
+      <text x="262" y="196" class="g" style="font-size:10px">response_format</text>
+      <path class="e" d="M322,180 L348,180"/>
+      <!-- taxonomy tree -->
+      <g stroke="#B9C6D4" stroke-width="1.5" fill="none">
+        <path d="M362,180 L414,120"/><path d="M362,180 L414,240"/>
+        <path d="M414,120 L470,90"/><path d="M414,120 L470,125"/><path d="M414,120 L470,160"/>
+        <path d="M414,240 L470,215"/><path d="M414,240 L470,250"/>
+      </g>
+      <path d="M414,240 L470,292" stroke="#E8890C" stroke-width="1.5" stroke-dasharray="4 3" fill="none"/>
+      <circle cx="362" cy="180" r="10" fill="#11567F"/>
+      <circle cx="414" cy="120" r="8" fill="#29B5E8"/><circle cx="414" cy="240" r="8" fill="#29B5E8"/>
+      <g fill="#FFFFFF" stroke="#94A3B8" stroke-width="1.5">
+        <circle cx="470" cy="90" r="7"/><circle cx="470" cy="160" r="7"/><circle cx="470" cy="215" r="7"/><circle cx="470" cy="250" r="7"/>
+      </g>
+      <circle cx="470" cy="125" r="13" fill="none" stroke="#1C8F5F" stroke-width="1.5" opacity=".45"/>
+      <circle cx="470" cy="125" r="7" fill="#1C8F5F"/>
+      <circle cx="470" cy="292" r="7" fill="#FFFFFF" stroke="#E8890C" stroke-width="1.5" stroke-dasharray="3 2"/>
+      <text x="470" y="318" style="font:600 9.5px var(--mono);fill:#E8890C;text-anchor:middle">NO_GOOD_MATCH</text>
+      <!-- captions -->
+      <text x="79" y="300" class="g" style="font-size:12px">nurse call notes</text>
+      <text x="262" y="252" class="g" style="font-size:12px">AI_COMPLETE</text>
+      <text x="416" y="356" class="g" style="font-size:12px">category &gt; theme &gt; subtheme</text>
+    </svg>
+  </div>
+  <aside class="notes">Quick framing: this is a post-discharge nurse call classification workflow built end to end in Snowflake as a governed pipeline. Three sections: how notes get classified into the taxonomy, how the taxonomy itself is created, versioned and revised, and how we evaluate, gate and cost the whole thing.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== 2. WORKFLOW ============================== -->
+<section class="slide" id="s-today">
+  <p class="kicker">Starting point</p>
+  <h2>The workflow: four steps</h2>
+  <p class="lede">Classifying call notes into a controlled taxonomy comes down to four steps, run for each service line. Each one maps onto ordinary Snowflake objects.</p>
+  <div class="body">
+    <svg viewBox="0 0 1136 400" role="img" aria-label="The four-step classification workflow and the Snowflake objects behind each step">
+      <!-- Snowflake source -->
+      <g class="nd blue">
+        <rect x="4" y="96" width="102" height="92"/>
+      </g>
+      <ellipse cx="55" cy="96" rx="51" ry="13" fill="#E9F7FD" stroke="#29B5E8" stroke-width="1.5"/>
+      <path d="M4,188 A51,13 0 0 0 106,188" fill="#E9F7FD" stroke="#29B5E8" stroke-width="1.5"/>
+      <rect x="5" y="97" width="100" height="10" fill="#E9F7FD"/>
+      <ellipse cx="55" cy="96" rx="51" ry="13" fill="none" stroke="#29B5E8" stroke-width="1.5"/>
+      <text x="55" y="142" class="t">Snowflake</text>
+      <text x="55" y="160" class="g">source note rows</text>
+      <path class="e" d="M112,145 L158,145"/>
+
+      <!-- Workflow container -->
+      <rect x="166" y="16" width="962" height="228" rx="14" fill="none" stroke="#94A3B8" stroke-dasharray="6 4"/>
+      <text x="186" y="40" class="lbl">THE CLASSIFICATION WORKFLOW &#183; PER SERVICE LINE</text>
+
+      <!-- Steps -->
+      <g transform="translate(186,64)">
+        <rect width="210" height="160" rx="12" fill="#fff" stroke="#D8E1EA" stroke-width="1.5"/>
+        <circle cx="26" cy="28" r="14" fill="#11567F"/><text x="26" y="33" class="t" style="fill:#fff;font-size:13px">1</text>
+        <text x="50" y="33" class="t start" style="font-size:15px">Data prep</text>
+        <text x="20" y="70" class="txt">Pull note rows</text>
+        <text x="20" y="90" class="txt">Roll lines up per encounter</text>
+        <text x="20" y="110" class="txt">Merge multi-note encounters</text>
+      </g>
+      <g transform="translate(420,64)">
+        <rect width="210" height="160" rx="12" fill="#fff" stroke="#D8E1EA" stroke-width="1.5"/>
+        <circle cx="26" cy="28" r="14" fill="#11567F"/><text x="26" y="33" class="t" style="fill:#fff;font-size:13px">2</text>
+        <text x="50" y="33" class="t start" style="font-size:15px">Taxonomy</text>
+        <rect x="160" y="18" width="36" height="20" rx="10" fill="#F2EEF9" stroke="#7254A3"/><text x="178" y="32" class="s" style="fill:#7254A3;font-weight:700">LLM</text>
+        <text x="20" y="70" class="txt">One large generation prompt</text>
+        <text x="20" y="90" class="txt">Category, theme, subtheme</text>
+        <text x="20" y="110" class="txt">Reviewed by a person</text>
+      </g>
+      <g transform="translate(654,64)">
+        <rect width="210" height="160" rx="12" fill="#fff" stroke="#D8E1EA" stroke-width="1.5"/>
+        <circle cx="26" cy="28" r="14" fill="#11567F"/><text x="26" y="33" class="t" style="fill:#fff;font-size:13px">3</text>
+        <text x="50" y="33" class="t start" style="font-size:15px">Classify</text>
+        <rect x="160" y="18" width="36" height="20" rx="10" fill="#F2EEF9" stroke="#7254A3"/><text x="178" y="32" class="s" style="fill:#7254A3;font-weight:700">LLM</text>
+        <text x="20" y="70" class="txt">LLM call per encounter</text>
+        <text x="20" y="90" class="txt">Rubric + taxonomy in prompt</text>
+        <text x="20" y="110" class="txt">One or two labels each</text>
+      </g>
+      <g transform="translate(888,64)">
+        <rect width="210" height="160" rx="12" fill="#fff" stroke="#D8E1EA" stroke-width="1.5"/>
+        <circle cx="26" cy="28" r="14" fill="#11567F"/><text x="26" y="33" class="t" style="fill:#fff;font-size:13px">4</text>
+        <text x="50" y="33" class="t start" style="font-size:15px">Post-process</text>
+        <text x="20" y="70" class="txt">Check labels against</text>
+        <text x="20" y="90" class="txt">the taxonomy</text>
+        <text x="20" y="110" class="txt">Track quality and cost</text>
+      </g>
+      <path class="e" d="M397,144 L419,144"/><path class="e" d="M631,144 L653,144"/><path class="e" d="M865,144 L887,144"/>
+
+      <!-- In Snowflake -->
+      <g stroke="#8FD3EE" stroke-dasharray="4 3" fill="none">
+        <path d="M291,224 V286"/><path d="M525,224 V286"/><path d="M759,224 V286"/><path d="M993,224 V286"/>
+      </g>
+      <g transform="translate(186,286)"><g class="nd blue"><rect width="210" height="84" rx="10"/></g>
+        <text x="16" y="28" class="txt" style="font-family:var(--mono);font-size:12px">ENCOUNTER_PREP</text><text x="16" y="47" class="txt">Dynamic table, rolls up</text><text x="16" y="66" class="txt">new notes incrementally.</text></g>
+      <g transform="translate(420,286)"><g class="nd blue"><rect width="210" height="84" rx="10"/></g>
+        <text x="16" y="28" class="txt" style="font-family:var(--mono);font-size:12px">TAXONOMY_VERSION</text><text x="16" y="47" class="txt">Versioned registry: draft,</text><text x="16" y="66" class="txt">lock, promote.</text></g>
+      <g transform="translate(654,286)"><g class="nd blue"><rect width="210" height="84" rx="10"/></g>
+        <text x="16" y="28" class="txt" style="font-family:var(--mono);font-size:12px">AI_COMPLETE</text><text x="16" y="47" class="txt">One set-based statement,</text><text x="16" y="66" class="txt">run by a scheduled task.</text></g>
+      <g transform="translate(888,286)"><g class="nd blue"><rect width="210" height="84" rx="10"/></g>
+        <text x="16" y="28" class="txt" style="font-family:var(--mono);font-size:12px">EVAL_GATE &#183; RUN_COST</text><text x="16" y="47" class="txt">Labels valid by schema;</text><text x="16" y="66" class="txt">quality and cost per run.</text></g>
+    </svg>
+    <p class="callout" style="margin-top:4px">The same objects carry versioning, evaluation, scheduling and cost tracking, so the whole lifecycle lives in one schema.</p>
+  </div>
+  <aside class="notes">This is the shape of the work: prepare the notes, build a taxonomy, classify against it, then check and track the results. The bottom row shows where each step lives in this build. The next slide lists what it takes to run that as a production pipeline, and the rest of the talk walks through each piece.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== 3. ASKS ============================== -->
+<section class="slide" id="s-asks">
+  <p class="kicker">Requirements</p>
+  <h2>What a production pipeline needs, and where it lives</h2>
+  <div class="body">
+    <div class="map">
+      <div class="ask"><svg viewBox="0 0 24 24"><path d="M12 3 L21 8 L12 13 L3 8 Z"/><path d="M3 12 L12 17 L21 12"/><path d="M3 16 L12 21 L21 16"/></svg>Artifact versioning</div>
+      <svg viewBox="0 0 56 20"><path class="e blue" d="M6,10 L48,10"/></svg>
+      <div class="ans"><span class="mono">TAXONOMY_VERSION &middot; CLASSIFIER_CONFIG &middot; PROMOTION_LOG</span><span class="chip c2">2 Governance</span><div>A config bundles prompt + model + taxonomy version, like a model version in a registry. Every label carries the config that produced it; every promotion is logged.</div></div>
+
+      <div class="ask"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7 V12 L15.5 14"/></svg>Operationalization</div>
+      <svg viewBox="0 0 56 20"><path class="e blue" d="M6,10 L48,10"/></svg>
+      <div class="ans"><span class="mono">Dynamic table &rarr; stream &rarr; scheduled task</span><span class="chip c1">1 Classification</span><div>New notes flow in incrementally. The task only does work when the stream has data.</div></div>
+
+      <div class="ask"><svg viewBox="0 0 24 24"><path d="M5 20 V13"/><path d="M10 20 V7"/><path d="M15 20 V11"/><path d="M20 20 V4"/></svg>Quality metrics and evaluation</div>
+      <svg viewBox="0 0 56 20"><path class="e blue" d="M6,10 L48,10"/></svg>
+      <div class="ans"><span class="mono">GOLD_LABEL &middot; RUN_EVAL &middot; EVAL_SCORECARD</span><span class="chip c3">3 Evaluation</span><div>Scored against a gold set, overall and per segment (category, label count, note length), field by field.</div></div>
+
+      <div class="ask"><svg viewBox="0 0 24 24"><path d="M2 12 H7 L9.5 6 L13 18 L15.5 12 H22"/></svg>Drift and regression detection</div>
+      <svg viewBox="0 0 56 20"><path class="e blue" d="M6,10 L48,10"/></svg>
+      <div class="ans"><span class="mono">EVAL_GATE &middot; EVAL_SCORECARD &middot; QUALITY_REGRESSION_ALERT</span><span class="chip c3">3 Operations</span><div>Absolute floor plus per-segment regression vs the champion in production. The alert ships suspended until a notification integration is wired up.</div></div>
+
+      <div class="ask"><svg viewBox="0 0 24 24"><path d="M20 12 A8 8 0 1 1 17.7 6.3"/><path d="M20 4 V9 H15"/></svg>Taxonomy and prompt retraining</div>
+      <svg viewBox="0 0 56 20"><path class="e blue" d="M6,10 L48,10"/></svg>
+      <div class="ans"><span class="mono">REGISTER_CONFIG &middot; EVALUATE_CONFIG &middot; PROMOTE_CONFIG</span><span class="chip c2">2 Governance</span><div>Edit the prompt, the taxonomy or both, register a candidate, score it on gold against the champion, promote only if it passes.</div></div>
+
+      <div class="ask"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="7" rx="7" ry="3"/><path d="M5 7 V17 C5 18.7 8.1 20 12 20 C15.9 20 19 18.7 19 17 V7"/><path d="M5 12 C5 13.7 8.1 15 12 15 C15.9 15 19 13.7 19 12"/></svg>Cost tracking</div>
+      <svg viewBox="0 0 56 20"><path class="e blue" d="M6,10 L48,10"/></svg>
+      <div class="ans"><span class="mono">RUN_COST</span><span class="chip c3">3 Operations</span><div>Measured credits and tokens per run, keyed on the run's query_id in CORTEX_AISQL_USAGE_HISTORY.</div></div>
+    </div>
+  </div>
+  <aside class="notes">Six things a production classification pipeline needs, and where each one lives. The chips show which of the three sections covers each. The retraining row is shaped like an ML model registry: a config is the unit, it gets registered, evaluated against the champion, then promoted. Nothing on the right is a separate product: they're tables, views, procedures, a dynamic table, a task and an alert in one schema. The alert is created suspended because it needs a notification integration to deliver.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== 6. ARCHITECTURE ============================== -->
+<section class="slide" id="s-arch">
+  <p class="kicker">Overview</p>
+  <h2>Three sections, one schema</h2>
+  <div class="body">
+    <svg viewBox="0 0 1136 450" role="img" aria-label="Architecture diagram: ingest and classify, govern, evaluate and revise">
+      <!-- Band backgrounds -->
+      <rect x="0" y="0" width="1136" height="146" rx="12" fill="#F7FBFE" stroke="#D6ECF6"/>
+      <rect x="0" y="176" width="1136" height="120" rx="12" fill="#FFFAF2" stroke="#F3E1C4"/>
+      <rect x="0" y="326" width="1136" height="120" rx="12" fill="#F4FBF7" stroke="#CFE9DB"/>
+      <text x="14" y="20" class="lbl" style="fill:#11567F">1 &#183; CLASSIFICATION</text>
+      <text x="14" y="196" class="lbl" style="fill:#B26A08">2 &#183; TAXONOMY GOVERNANCE</text>
+      <text x="14" y="346" class="lbl" style="fill:#1C8F5F">3 &#183; EVALUATION AND OPERATIONS</text>
+
+      <!-- Band 1 -->
+      <g transform="translate(10,34)" class="nd grey"><rect width="156" height="66" rx="10"/><text x="78" y="23" class="t">Raw notes</text><text x="78" y="40" class="s">NOTE_RAW</text><text x="78" y="56" class="g">1,260 rows</text></g>
+      <g transform="translate(196,34)" class="nd blue"><rect width="156" height="66" rx="10"/><text x="78" y="23" class="t">Encounter rollup</text><text x="78" y="40" class="s">ENCOUNTER_PREP</text><text x="78" y="56" class="g">dynamic table, incremental</text></g>
+      <g transform="translate(382,34)" class="nd blue"><rect width="156" height="66" rx="10"/><text x="78" y="23" class="t">Change feed</text><text x="78" y="40" class="s">ENCOUNTER_PREP_STREAM</text><text x="78" y="56" class="g">stream on the DT</text></g>
+      <g transform="translate(568,34)" class="nd blue"><rect width="156" height="66" rx="10"/><text x="78" y="23" class="t">Scheduled task</text><text x="78" y="40" class="s">CLASSIFY_ENCOUNTERS</text><text x="78" y="56" class="g">1 min, WHEN stream has data</text></g>
+      <g transform="translate(754,34)" class="nd purple"><rect width="156" height="66" rx="10"/><text x="78" y="23" class="t">Run the champion</text><text x="78" y="40" class="s">RUN_CLASSIFIER()</text><text x="78" y="56" class="g">one set-based AI_COMPLETE</text></g>
+      <path class="e" d="M167,67 L195,67"/><path class="e" d="M353,67 L381,67"/><path class="e" d="M539,67 L567,67"/><path class="e" d="M725,67 L753,67"/>
+      <g transform="translate(940,26)" class="nd white"><rect width="186" height="34" rx="8"/><text x="93" y="15" class="s" style="font-size:10.5px">CLASSIFICATION_RAW</text><text x="93" y="28" class="g" style="font-size:9.5px">exact model output, for audit</text></g>
+      <g transform="translate(940,64)" class="nd white"><rect width="186" height="34" rx="8"/><text x="93" y="15" class="s" style="font-size:10.5px">CLASSIFICATION</text><text x="93" y="28" class="g" style="font-size:9.5px">1 row per label, config stamped</text></g>
+      <g transform="translate(940,102)" class="nd white"><rect width="186" height="34" rx="8"/><text x="93" y="15" class="s" style="font-size:10.5px">PIPELINE_RUN</text><text x="93" y="28" class="g" style="font-size:9.5px">production or evaluation</text></g>
+      <path class="e" d="M911,60 C925,60 925,43 939,43"/><path class="e" d="M911,67 L939,81"/><path class="e" d="M911,74 C925,74 925,119 939,119"/>
+
+      <!-- Band 2 -->
+      <g transform="translate(10,210)" class="nd purple"><rect width="156" height="66" rx="10"/><text x="78" y="23" class="t">Author taxonomy</text><text x="78" y="40" class="s">PROPOSE / FORK / EDIT</text><text x="78" y="56" class="g">LLM draft, then by hand</text></g>
+      <g transform="translate(196,210)" class="nd orange"><rect width="156" height="66" rx="10"/><text x="78" y="23" class="t">Version registry</text><text x="78" y="40" class="s">LOCK_TAXONOMY()</text><text x="78" y="56" class="g">draft, locked, approved</text></g>
+      <g transform="translate(382,210)" class="nd orange"><rect width="156" height="66" rx="10"/><text x="78" y="23" class="t">Candidate config</text><text x="78" y="40" class="s">REGISTER_CONFIG()</text><text x="78" y="56" class="g">prompt + model + taxonomy</text></g>
+      <g transform="translate(568,210)" class="nd green"><rect width="156" height="66" rx="10" style="stroke-width:2.5"/><text x="78" y="23" class="t">Gated promotion</text><text x="78" y="40" class="s">PROMOTE_CONFIG()</text><text x="78" y="56" class="g">pass, or a logged override</text></g>
+      <g transform="translate(754,210)" class="nd blue"><rect width="156" height="66" rx="10"/><text x="78" y="23" class="t">Champion</text><text x="78" y="40" class="s">ACTIVE_CONFIG</text><text x="78" y="56" class="g">the one config in prod</text></g>
+      <path class="e" d="M167,243 L195,243"/><path class="e" d="M353,243 L381,243"/><path class="e green" d="M539,243 L567,243"/><path class="e green" d="M725,243 L753,243"/>
+      <path class="e blue" d="M832,209 V102"/>
+      <text x="726" y="155" class="g" style="font-size:10px;fill:#11567F">production runs the champion only</text>
+      <!-- candidates are scored by Band 3 before promotion -->
+      <path class="e green dash" d="M460,277 V300 H274 V359"/>
+      <g transform="translate(940,210)" class="nd orange"><rect width="176" height="66" rx="10"/><text x="88" y="23" class="t">Gap queue</text><text x="88" y="40" class="s">TAXONOMY_GAP_REVIEW</text><text x="88" y="56" class="g">NO_GOOD_MATCH or LOW</text></g>
+      <!-- CLASSIFICATION feeds gap queue -->
+      <path class="e orange dash" d="M940,81 H926 V243 H939"/>
+      <!-- Revision loop back to the registry -->
+      <path class="e orange" d="M1028,277 V290 H274 V277"/>
+      <text x="830" y="312" class="s" style="fill:#B26A08;font-size:10.5px">PROPOSE_TAXONOMY_REVISION() &#183; next DRAFT</text>
+
+      <!-- Band 3 -->
+      <g transform="translate(10,360)" class="nd green"><rect width="156" height="66" rx="10"/><text x="78" y="23" class="t">Gold set</text><text x="78" y="40" class="s">GOLD_LABEL</text><text x="78" y="56" class="g">200 encounters, per version</text></g>
+      <g transform="translate(196,360)" class="nd green"><rect width="156" height="66" rx="10"/><text x="78" y="23" class="t">Evaluate a config</text><text x="78" y="40" class="s">EVALUATE_CONFIG()</text><text x="78" y="56" class="g">gold run, overall + segments</text></g>
+      <g transform="translate(382,360)" class="nd green"><rect width="156" height="66" rx="10"/><text x="78" y="23" class="t">Ship gate</text><text x="78" y="40" class="s">EVAL_GATE</text><text x="78" y="56" class="g">vs the champion</text></g>
+      <g transform="translate(568,360)" class="nd green"><rect width="156" height="66" rx="10"/><text x="78" y="23" class="t">Regression alert</text><text x="78" y="40" class="s">QUALITY_REGRESSION_ALERT</text><text x="78" y="56" class="g">daily (suspended in demo)</text></g>
+      <g transform="translate(754,360)" class="nd green"><rect width="156" height="66" rx="10"/><text x="78" y="23" class="t">Drift over time</text><text x="78" y="40" class="s">EVAL_SCORECARD</text><text x="78" y="56" class="g">every eval, by time</text></g>
+      <g transform="translate(940,360)" class="nd green"><rect width="186" height="66" rx="10"/><text x="93" y="23" class="t">Cost per run</text><text x="93" y="40" class="s">RUN_COST</text><text x="93" y="56" class="g">credits + tokens by query_id</text></g>
+      <path class="e" d="M167,393 L195,393"/><path class="e" d="M353,393 L381,393"/><path class="e" d="M539,393 L567,393"/>
+      <!-- gate verdict feeds promotion -->
+      <path class="e green" d="M460,359 V320 H646 V277"/>
+    </svg>
+  </div>
+  <aside class="notes">This is the map for the rest of the talk, one band per section. Top, classification: notes land in NOTE_RAW, a dynamic table rolls them up per encounter incrementally with no LLM, a stream captures what's new, and a task wakes every minute but only runs when the stream has data. One set-based AI_COMPLETE classifies the batch, always with the champion config. Middle, governance: author a taxonomy (an LLM draft, then edits by hand), lock it, bind it with a prompt and a model into a candidate config, and promote that only through the gate. Bottom, evaluation and operations: a candidate is scored on the gold set and gated against the champion before it can ship, then production gets alerted on, trended and costed. The gap queue on the right is fed by production output and drafts the next taxonomy. Everything here is in one schema.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== SECTION 1 DIVIDER ============================== -->
+<section class="slide divider" id="s-sec1" data-sec="1">
+  <div class="div-grid">
+    <div>
+      <div class="div-num">1</div>
+      <h1>Classification</h1>
+      <p class="title-sub">The process of classifying nurse call notes into the taxonomy: incrementally, on a schedule, and without ever producing a label that isn't in it.</p>
+    </div>
+    <div>
+      <p class="toc-h">In this section</p>
+      <ul class="toc">
+        <li><b>Make a wrong label impossible</b>The subtheme list is the response_format enum</li>
+        <li><b>Ask for the leaf, derive the rest</b>And give the model an honest way out</li>
+        <li><b>Why the LLM step is a task</b>Where the pipeline splits, and who decides to spend</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="roadmap" viewBox="0 0 1136 44" role="img" aria-label="Section 1 of 3">
+    <rect x="0" y="4" width="370" height="36" rx="18" fill="#29B5E8"/><text x="185" y="27" class="t" style="fill:#fff">1 &#183; Classification</text>
+    <rect x="383" y="4" width="370" height="36" rx="18" fill="#fff" stroke="#D8E1EA"/><text x="568" y="27" class="t" style="fill:#94A3B8">2 &#183; Taxonomy governance</text>
+    <rect x="766" y="4" width="370" height="36" rx="18" fill="#fff" stroke="#D8E1EA"/><text x="951" y="27" class="t" style="fill:#94A3B8">3 &#183; Evaluation and operations</text>
+  </svg>
+  <aside class="notes">Section one is the run path: a note comes in, and a validated, version-stamped label comes out. Three ideas: the enum, leaf-only prediction with a deliberate escape hatch, and the decision to split the pipeline at the stream.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== 4. CENTRAL IDEA ============================== -->
+<section class="slide" id="s-idea" data-sec="1">
+  <p class="kicker">1 &middot; Classification</p>
+  <h2>The central idea: every label is a valid subtheme</h2>
+  <div class="body" style="display:grid;grid-template-columns:1fr 340px;gap:28px">
+    <svg viewBox="0 0 760 420" role="img" aria-label="Open-ended labeling compared with enum-constrained classification">
+      <!-- Lane 1 -->
+      <rect x="0" y="0" width="760" height="172" rx="14" fill="#FAFBFC" stroke="#D8E1EA"/>
+      <text x="20" y="28" class="lbl">OPEN-ENDED LABELS</text>
+      <g transform="translate(20,48)" class="nd grey"><rect width="160" height="60" rx="10"/><text x="80" y="27" class="t">Nurse note</text><text x="80" y="45" class="g">free text</text></g>
+      <g transform="translate(208,48)" class="nd purple"><rect width="160" height="60" rx="10"/><text x="80" y="27" class="t">LLM writes a label</text><text x="80" y="45" class="g">as free text</text></g>
+      <g transform="translate(396,48)" class="nd grey"><rect width="160" height="60" rx="10"/><text x="80" y="27" class="t">Map to taxonomy</text><text x="80" y="45" class="g">nearest match</text></g>
+      <g transform="translate(584,48)" class="nd grey"><rect width="160" height="60" rx="10"/><text x="80" y="27" class="t">Review the rest</text><text x="80" y="45" class="g">anything unmatched</text></g>
+      <path class="e" d="M181,78 L207,78"/><path class="e" d="M369,78 L395,78"/><path class="e" d="M557,78 L583,78"/>
+      <text x="20" y="146" class="txt" style="fill:#64748B">Labels are checked against the taxonomy after the model answers.</text>
+
+      <!-- Lane 2 -->
+      <rect x="0" y="196" width="760" height="224" rx="14" fill="#F5FBFE" stroke="#BFE6F6"/>
+      <text x="20" y="224" class="lbl" style="fill:#11567F">THIS PIPELINE</text>
+      <g transform="translate(20,262)" class="nd grey"><rect width="160" height="66" rx="10"/><text x="80" y="26" class="t">Note + rubric</text><text x="80" y="44" class="g">full hierarchy and</text><text x="80" y="57" class="g">routing rules</text></g>
+      <g transform="translate(208,262)" class="nd purple"><rect width="250" height="66" rx="10"/><text x="125" y="24" class="t">AI_COMPLETE</text><text x="125" y="41" class="s">response_format = enum</text><text x="125" y="57" class="g">schema read from the config's taxonomy</text></g>
+      <g transform="translate(488,240)" class="nd green"><rect width="252" height="54" rx="10"/><text x="126" y="23" class="t">A real subtheme, every time</text><text x="126" y="41" class="g">theme and category derived by join</text></g>
+      <g transform="translate(488,306)" class="nd orange dash"><rect width="252" height="54" rx="10"/><text x="126" y="23" class="s" style="font-size:12px;fill:#E8890C;font-weight:700">NO_GOOD_MATCH</text><text x="126" y="41" class="g">counted as a taxonomy-gap signal</text></g>
+      <path class="e" d="M181,295 L207,295"/>
+      <path class="e green" d="M459,286 C472,286 474,267 487,267"/>
+      <path class="e orange dash" d="M459,304 C472,304 474,333 487,333"/>
+      <text x="20" y="396" class="txt" style="fill:#11567F;font-weight:700;font-size:14px">Every label is valid by construction, so nothing needs mapping afterward.</text>
+    </svg>
+    <div class="center-v" style="gap:16px">
+      <div>
+        <div class="stat">0</div>
+        <div class="stat-label">out-of-taxonomy labels</div>
+        <div class="muted small" style="margin-top:4px">across 2,466 labels, every run in the build</div>
+      </div>
+<pre class="code"><i>-- rendered from the config's taxonomy version</i>
+response_format =&gt; {
+  "primary_subtheme": {
+    "enum": [ <i>...78 subthemes,</i>
+              <em>"NO_GOOD_MATCH"</em> ] },
+  "secondary_subtheme": {
+    "enum": [ <i>...,</i> "NONE" ] },
+  "confidence": {
+    "enum": ["HIGH","MEDIUM","LOW"] },
+  "evidence": { "type": "string" }
+}</pre>
+      <div class="muted small">The 2 or 3 failed calls per run are the schema doing its job, e.g. rejecting a "Theme &gt; Subtheme" path where a subtheme name belongs.</div>
+    </div>
+  </div>
+  <aside class="notes">This is the slide that matters most. With open-ended labels, the model's answer has to be checked against the taxonomy afterward. Here the subtheme list goes into the response_format enum, so the model can only return a subtheme that exists in the taxonomy version it was given, and there's nothing to map. The NO_GOOD_MATCH member gives it a clean way to say nothing fits, and that's what turns into gap detection later.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== 5. LEAF + ESCAPE HATCH ============================== -->
+<section class="slide" id="s-leaf" data-sec="1">
+  <p class="kicker">1 &middot; Classification</p>
+  <h2>Ask for the leaf, derive the rest, give it an honest way out</h2>
+  <div class="body" style="display:grid;grid-template-columns:640px 1fr;gap:36px">
+    <svg viewBox="-40 0 680 430" role="img" aria-label="Model picks a subtheme leaf; theme and category are derived; NO_GOOD_MATCH sits outside the tree">
+      <g transform="translate(210,10)" class="nd navy"><rect width="200" height="50" rx="10"/><text x="100" y="23" class="t">Symptoms</text><text x="100" y="40" class="g">category</text></g>
+      <g transform="translate(40,120)" class="nd blue"><rect width="200" height="50" rx="10"/><text x="100" y="23" class="t">GI Symptoms</text><text x="100" y="40" class="g">theme</text></g>
+      <g transform="translate(380,120)" class="nd blue"><rect width="200" height="50" rx="10"/><text x="100" y="23" class="t">Respiratory Symptoms</text><text x="100" y="40" class="g">theme</text></g>
+      <g stroke="#B9C6D4" stroke-width="1.5" fill="none">
+        <path d="M310,60 L140,120"/><path d="M310,60 L480,120"/>
+        <path d="M140,170 L95,240"/><path d="M140,170 L305,240"/><path d="M480,170 L515,240"/>
+      </g>
+      <g transform="translate(0,240)" class="nd green"><rect width="190" height="54" rx="10" style="stroke-width:2.5"/><text x="95" y="24" class="t" style="font-size:12.5px">Abdominal Pain Not Surgical</text><text x="95" y="41" class="g">subtheme (model's pick)</text></g>
+      <g transform="translate(210,240)" class="nd white"><rect width="190" height="54" rx="10"/><text x="95" y="24" class="t" style="font-size:12.5px">Nausea or Vomiting</text><text x="95" y="41" class="g">subtheme</text></g>
+      <g transform="translate(420,240)" class="nd white"><rect width="190" height="54" rx="10"/><text x="95" y="24" class="t" style="font-size:12.5px">Shortness of Breath</text><text x="95" y="41" class="g">subtheme</text></g>
+
+      <!-- derived-by-join arrows -->
+      <path class="e green dash" d="M6,240 C-22,206 -8,152 39,146"/>
+      <path class="e green dash" d="M40,128 C46,70 120,38 209,36"/>
+      <text x="-34" y="28" class="g start" style="fill:#1C8F5F;font-weight:600;font-size:11px">derived by join,</text>
+      <text x="-34" y="42" class="g start" style="fill:#1C8F5F;font-weight:600;font-size:11px">never predicted</text>
+
+      <!-- model chip -->
+      <g transform="translate(0,360)" class="nd purple"><rect width="190" height="50" rx="10"/><text x="95" y="22" class="t">Model returns</text><text x="95" y="39" class="s">primary_subtheme only</text></g>
+      <path class="e purple" d="M95,359 L95,297"/>
+      <!-- escape hatch -->
+      <g transform="translate(420,358)" class="nd orange dash"><rect width="190" height="54" rx="10"/><text x="95" y="24" class="s" style="font-size:12px;fill:#E8890C;font-weight:700">NO_GOOD_MATCH</text><text x="95" y="41" class="g">outside the tree, on purpose</text></g>
+      <path class="e orange dash" d="M191,385 L419,385"/>
+      <text x="305" y="377" class="g" style="fill:#E8890C">or, if the concept is missing</text>
+    </svg>
+    <div class="cards" style="align-content:center">
+      <div class="card green"><h3>Mismatch is structurally zero</h3><p>The model picks only the subtheme. Theme and category come from a join to the taxonomy, so a theme/subtheme mismatch can't happen. It's not a metric to watch anymore.</p></div>
+      <div class="card blue"><h3>Hierarchy in the prompt, leaf in the answer</h3><p>The prompt still carries the full <span class="mono">[CATEGORY] Theme &gt; Subtheme: description</span> hierarchy and routing rules, so close calls like post-op vs general follow-up stay decidable.</p></div>
+      <div class="card orange"><h3>The escape hatch is the gap detector</h3><p>A small model under a strict enum rarely picks NO_GOOD_MATCH on its own, so it's paired with LOW confidence. Both were 100% precise on genuine gaps.</p></div>
+      <div class="card"><h3>Evidence on every label</h3><p>A free-text evidence field rides along. It's what makes human review of flagged rows quick.</p></div>
+    </div>
+  </div>
+  <aside class="notes">Two common ways to set this up are a hierarchical prompt, where the model sees the full category, theme and subtheme structure, and a subtheme-only answer, where theme and category are looked up. This does both: the model sees the whole hierarchy in the prompt but only answers with the leaf. The example labels here are illustrative. On NO_GOOD_MATCH: the rubric wording mattered a lot. Telling the model not to use it for poor fits made it force a match; describing it as an expected, useful outcome got it to flag real gaps without false positives elsewhere.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== 7. TASK NOT DT ============================== -->
+<section class="slide" id="s-task" data-sec="1">
+  <p class="kicker">1 &middot; Classification &middot; design decision</p>
+  <h2>Why the LLM step is a task, not a dynamic table</h2>
+  <p class="lede">Every label is stamped with the config (prompt + model + taxonomy) that produced it. Where you split the pipeline decides who chooses to spend money on re-classification.</p>
+  <div class="body">
+    <svg viewBox="0 0 1136 380" role="img" aria-label="Comparison: dynamic table re-bills silently versus stream split makes re-classification an explicit decision">
+      <!-- Left panel -->
+      <rect x="0" y="0" width="548" height="380" rx="14" fill="#FDF6F6" stroke="#F0C8C8"/>
+      <text x="22" y="30" class="lbl" style="fill:#C73E3E">IF CLASSIFICATION WERE A DYNAMIC TABLE</text>
+      <g transform="translate(94,52)" class="nd blue"><rect width="360" height="54" rx="10"/><text x="180" y="23" class="t">Classification as a dynamic table</text><text x="180" y="41" class="s">... JOIN ACTIVE_CONFIG</text></g>
+      <g transform="translate(94,134)" class="nd orange"><rect width="360" height="54" rx="10"/><text x="180" y="23" class="t">Someone promotes a new config</text><text x="180" y="41" class="g">a governance decision</text></g>
+      <g transform="translate(94,216)" class="nd red"><rect width="360" height="54" rx="10"/><text x="180" y="23" class="t">Every row is invalidated</text><text x="180" y="41" class="g">a join input changed</text></g>
+      <g transform="translate(94,298)" class="nd red"><rect width="360" height="54" rx="10" style="stroke-width:2.5"/><text x="180" y="23" class="t">Full re-classification gets billed</text><text x="180" y="41" class="g">and nobody chose to spend it</text></g>
+      <path class="e" d="M274,107 V133"/><path class="e red" d="M274,189 V215"/><path class="e red" d="M274,271 V297"/>
+
+      <!-- Right panel -->
+      <rect x="588" y="0" width="548" height="380" rx="14" fill="#F4FBF7" stroke="#BFE3D0"/>
+      <text x="610" y="30" class="lbl" style="fill:#1C8F5F">SPLIT AT THE STREAM (THIS PIPELINE)</text>
+      <g transform="translate(608,44)" class="nd blue"><rect width="112" height="46" rx="8"/><text x="56" y="20" class="t" style="font-size:12.5px">Rollup DT</text><text x="56" y="35" class="s" style="font-size:9px">ENCOUNTER_PREP</text></g>
+      <g transform="translate(736,44)" class="nd blue"><rect width="112" height="46" rx="8"/><text x="56" y="20" class="t" style="font-size:12.5px">Stream</text><text x="56" y="35" class="s" style="font-size:9px">new rows only</text></g>
+      <g transform="translate(864,44)" class="nd blue"><rect width="112" height="46" rx="8"/><text x="56" y="20" class="t" style="font-size:12.5px">Task</text><text x="56" y="35" class="s" style="font-size:9px">STREAM mode</text></g>
+      <g transform="translate(992,44)" class="nd purple"><rect width="124" height="46" rx="8"/><text x="62" y="20" class="t" style="font-size:12.5px">Classify</text><text x="62" y="35" class="s" style="font-size:9px">the champion</text></g>
+      <path class="e" d="M721,67 L735,67"/><path class="e" d="M849,67 L863,67"/><path class="e" d="M977,67 L991,67"/>
+      <line x1="608" y1="112" x2="1116" y2="112" stroke="#BFE3D0" stroke-dasharray="4 4"/>
+      <g transform="translate(682,134)" class="nd orange"><rect width="360" height="54" rx="10"/><text x="180" y="23" class="t">Someone promotes a new config</text><text x="180" y="41" class="g">same governance decision</text></g>
+      <g transform="translate(682,216)" class="nd blue"><rect width="360" height="54" rx="10"/><text x="180" y="23" class="t">Backlog grows on its own</text><text x="180" y="41" class="g">backlog = no production label from the champion</text></g>
+      <g transform="translate(682,298)" class="nd green"><rect width="360" height="54" rx="10" style="stroke-width:2.5"/><text x="180" y="23" class="t">You decide when to spend</text><text x="180" y="41" class="s">CALL CLASSIFY_BATCH('BACKLOG')</text></g>
+      <path class="e" d="M862,189 V215"/><path class="e green" d="M862,271 V297"/>
+    </svg>
+    <p class="callout" style="margin-top:10px">The deterministic rollup still gets the full declarative treatment. Only the step that costs money per row is split out. Triggered tasks don't fire on dynamic-table streams, so the task is scheduled every minute and gated by <span class="mono">WHEN SYSTEM$STREAM_HAS_DATA</span>.</p>
+  </div>
+  <aside class="notes">This is the one architectural call I'd defend hardest. It's tempting to make the whole thing dynamic tables. But if classification is a DT joined to the champion config, promoting a new one silently re-bills everything. Splitting at the stream turns that into an explicit, costed decision. And because backlog is defined as "no production label from the champion", a promotion automatically means the whole corpus is due, with no special code path. Until you run it, the business keeps seeing the previous labels.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== SECTION 2 DIVIDER ============================== -->
+<section class="slide divider" id="s-sec2" data-sec="2">
+  <div class="div-grid">
+    <div>
+      <div class="div-num">2</div>
+      <h1>Taxonomy governance</h1>
+      <p class="title-sub">Creating, versioning and revising the taxonomy. The classifier can only say what the governed taxonomy allows, so this is where its vocabulary is decided.</p>
+    </div>
+    <div>
+      <p class="toc-h">In this section</p>
+      <ul class="toc">
+        <li><b>An LLM drafts v1</b>From a design sample, in one structured call</li>
+        <li><b>A version registry</b>DRAFT, LOCKED, APPROVED, SUPERSEDED: edited by hand, shipped only by promotion</li>
+        <li><b>Gaps become the signal</b>What classification couldn't place drives the next draft</li>
+        <li><b>The revision loop</b>Every step, end to end, as a SQL object</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="roadmap" viewBox="0 0 1136 44" role="img" aria-label="Section 2 of 3">
+    <rect x="0" y="4" width="370" height="36" rx="18" fill="#fff" stroke="#D8E1EA"/><text x="185" y="27" class="t" style="fill:#94A3B8">1 &#183; Classification</text>
+    <rect x="383" y="4" width="370" height="36" rx="18" fill="#E8890C"/><text x="568" y="27" class="t" style="fill:#fff">2 &#183; Taxonomy governance</text>
+    <rect x="766" y="4" width="370" height="36" rx="18" fill="#fff" stroke="#D8E1EA"/><text x="951" y="27" class="t" style="fill:#94A3B8">3 &#183; Evaluation and operations</text>
+  </svg>
+  <aside class="notes">Section two is about the artifact the classifier depends on: the taxonomy. We'll cover how v1 gets generated, how versions are edited, locked and promoted, and how the gaps that production surfaces turn into the next version.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== GOVERNANCE: LLM DRAFTS V1 ============================== -->
+<section class="slide" id="s-v1" data-sec="2">
+  <p class="kicker">2 &middot; Taxonomy governance &middot; creating v1</p>
+  <h2>An LLM drafts v1 of the taxonomy</h2>
+  <p class="lede"><span class="mono">PROPOSE_TAXONOMY()</span> turns a design sample into a complete draft tree in one structured call. It writes a DRAFT and never touches what the pipeline is using.</p>
+  <div class="body" style="display:grid;grid-template-columns:1fr 340px;gap:28px">
+    <svg viewBox="0 0 770 400" role="img" aria-label="Design sample and a four-part prompt go to AI_COMPLETE, which writes DRAFT v001 for human review">
+      <!-- sample -->
+      <g transform="translate(0,150)" class="nd grey"><rect width="150" height="80" rx="10"/><text x="75" y="26" class="t">Design sample</text><text x="75" y="44" class="s">DISCOVERY_SAMPLE</text><text x="75" y="62" class="g">163 notes, numbered</text></g>
+      <path class="e" d="M151,190 L181,190"/>
+      <!-- prompt -->
+      <rect x="182" y="0" width="300" height="400" rx="12" fill="#FAFBFC" stroke="#D8E1EA"/>
+      <text x="198" y="26" class="lbl">THE PROMPT, FOUR PARTS</text>
+      <g transform="translate(192,40)">
+        <rect width="280" height="80" rx="8" fill="#fff" stroke="#D8E1EA"/><rect width="5" height="80" rx="2" fill="#11567F"/>
+        <text x="18" y="24" class="t start" style="font-size:13px">Structural rules</text>
+        <text x="18" y="44" class="txt" style="font-size:10.8px">Category &gt; theme &gt; subtheme, 6-8 categories,</text>
+        <text x="18" y="61" class="txt" style="font-size:10.8px">45-65 subthemes, names unique tree-wide</text>
+      </g>
+      <g transform="translate(192,128)">
+        <rect width="280" height="80" rx="8" fill="#fff" stroke="#D8E1EA"/><rect width="5" height="80" rx="2" fill="#29B5E8"/>
+        <text x="18" y="24" class="t start" style="font-size:13px">Quality requirements</text>
+        <text x="18" y="44" class="txt" style="font-size:10.8px">A decisive one-sentence description each,</text>
+        <text x="18" y="61" class="txt" style="font-size:10.8px">and a routing_note where two could overlap</text>
+      </g>
+      <g transform="translate(192,216)">
+        <rect width="280" height="80" rx="8" fill="#fff" stroke="#D8E1EA"/><rect width="5" height="80" rx="2" fill="#7254A3"/>
+        <text x="18" y="24" class="t start" style="font-size:13px">Coverage domains</text>
+        <text x="18" y="44" class="txt" style="font-size:10.8px">Symptoms, post-op, medication, coordination,</text>
+        <text x="18" y="61" class="txt" style="font-size:10.8px">education, access, plus an administrative bin</text>
+      </g>
+      <g transform="translate(192,304)">
+        <rect width="280" height="80" rx="8" fill="#fff" stroke="#D8E1EA"/><rect width="5" height="80" rx="2" fill="#E8890C"/>
+        <text x="18" y="24" class="t start" style="font-size:13px">Anti-anchoring</text>
+        <text x="18" y="44" class="txt" style="font-size:10.8px">Generalize, don't mirror the sample. No catch-all</text>
+        <text x="18" y="61" class="txt" style="font-size:10.8px">"Other": it would hide exactly the gaps we want</text>
+      </g>
+      <!-- model -->
+      <path class="e purple" d="M483,70 L521,70"/>
+      <g transform="translate(522,20)" class="nd purple"><rect width="248" height="100" rx="12"/><text x="124" y="28" class="t">AI_COMPLETE</text><text x="124" y="48" class="s">openai-gpt-5.2 &#183; temperature 0</text><text x="124" y="68" class="g">response_format: JSON schema for</text><text x="124" y="83" class="g">rationale + nodes[ ]</text></g>
+      <path class="e orange" d="M646,121 L646,157"/>
+      <!-- draft -->
+      <g transform="translate(522,158)" class="nd orange"><rect width="248" height="96" rx="20" style="stroke-width:2.5"/><text x="124" y="34" class="t" style="font-size:20px">DRAFT v001</text><text x="124" y="56" class="txt" style="text-anchor:middle;font-weight:600">8 categories &#183; 23 themes</text><text x="124" y="76" class="txt" style="text-anchor:middle;font-weight:600">78 subthemes</text></g>
+      <path class="e" d="M646,255 L646,291"/>
+      <!-- review -->
+      <g transform="translate(522,292)" class="nd white"><rect width="248" height="92" rx="12"/><text x="124" y="26" class="t">A person reviews it</text><text x="124" y="46" class="s">EDIT_TAXONOMY_NODE()</text><text x="124" y="64" class="g">then LOCK_TAXONOMY()</text><text x="124" y="79" class="g">or REJECT_TAXONOMY()</text></g>
+    </svg>
+    <div style="display:flex;flex-direction:column;gap:14px;justify-content:center">
+<pre class="code"><i>-- what comes back, one call</i>
+{ <b>"rationale"</b>: "...",
+  <b>"nodes"</b>: [ {
+    "category":     "...",
+    "theme":        "...",
+    "subtheme":     "...",
+    "description":  "...",
+    "routing_note": "..." } ] }</pre>
+      <div class="card orange"><h3>The gap is planted, and checked</h3><p>The design sample leaves out transportation notes, and notes that hint at it. One note mentioning it in passing was enough for the generator to pick it up.</p></div>
+      <div class="card"><h3>Output is checked on the way in</h3><p>Raw output lands in a temp table first, so a failed call is inspectable. Duplicate subtheme names are dropped before insert.</p></div>
+    </div>
+  </div>
+  <aside class="notes">One large taxonomy prompt, with the result landing as rows in a versioned table. The prompt has four parts: structure, quality, coverage, and an explicit anti-anchoring instruction. The model choice is a parameter; v001 in this build came from openai-gpt-5.2 over 163 sample notes. It came back with 23 themes against a 15 to 20 target, and one node with a blank subtheme name, which we named Administrative Matter Only by hand. Models don't always follow every rule, so generation drops blank nodes on insert, a person reviews and locks the draft, and LOCK_TAXONOMY refuses blank or duplicate labels as a backstop. The planted gap: design samples rarely cover everything, so here the miss is explicit (transportation barriers) to give gap detection something real to find later.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== 8. TAXONOMY LIFECYCLE ============================== -->
+<section class="slide" id="s-taxonomy" data-sec="2">
+  <p class="kicker">2 &middot; Taxonomy governance &middot; versioning</p>
+  <h2>A version registry for the taxonomy</h2>
+  <div class="body">
+    <svg viewBox="0 0 1136 300" role="img" aria-label="Taxonomy version lifecycle: draft, locked, evaluated through a config, approved by promotion, rejected, superseded">
+      <g transform="translate(0,110)" class="nd purple"><rect width="170" height="66" rx="10"/><text x="85" y="23" class="t">Author</text><text x="85" y="40" class="s">PROPOSE &#183; FORK</text><text x="85" y="56" class="g">LLM draft, or copy a version</text></g>
+      <g transform="translate(206,110)" class="nd orange"><rect width="150" height="66" rx="33"/><text x="75" y="28" class="t" style="font-size:16px">DRAFT</text><text x="75" y="45" class="s" style="font-size:9px">EDIT_TAXONOMY_NODE()</text><text x="75" y="58" class="g" style="font-size:9.5px">editable, does nothing</text></g>
+      <g transform="translate(392,110)" class="nd blue"><rect width="150" height="66" rx="33"/><text x="75" y="28" class="t" style="font-size:16px">LOCKED</text><text x="75" y="45" class="s" style="font-size:9px">LOCK_TAXONOMY()</text><text x="75" y="58" class="g" style="font-size:9.5px">frozen, can be evaluated</text></g>
+      <g transform="translate(578,110)" class="nd white"><rect width="200" height="66" rx="10"/><text x="100" y="23" class="t">Evaluate via a config</text><text x="100" y="40" class="s">EVALUATE_CONFIG()</text><text x="100" y="56" class="g">gold set, gated vs the champion</text></g>
+      <g transform="translate(623,80)"><rect width="110" height="20" rx="10" fill="#FFF4E5" stroke="#E8890C"/><text x="55" y="14" class="g" style="fill:#B26A08;font-weight:600">a person promotes</text></g>
+      <g transform="translate(828,30)" class="nd green"><rect width="150" height="66" rx="18" style="stroke-width:2.5"/><text x="75" y="26" class="t" style="font-size:16px">APPROVED</text><text x="75" y="42" class="s">PROMOTE_CONFIG()</text><text x="75" y="56" class="g" style="font-size:9.5px">the champion's taxonomy</text></g>
+      <g transform="translate(828,190)" class="nd red"><rect width="150" height="66" rx="18"/><text x="75" y="26" class="t" style="font-size:16px">REJECTED</text><text x="75" y="42" class="s">REJECT_TAXONOMY()</text><text x="75" y="56" class="g">kept for the record</text></g>
+      <g transform="translate(1000,30)" class="nd grey"><rect width="136" height="66" rx="18"/><text x="68" y="28" class="t">SUPERSEDED</text><text x="68" y="45" class="g">a newer one shipped</text><text x="68" y="58" class="g">rollback target</text></g>
+      <path class="e" d="M171,143 L205,143"/><path class="e" d="M357,143 L391,143"/><path class="e" d="M543,143 L577,143"/>
+      <path class="e green" d="M779,136 C803,136 803,63 827,63"/>
+      <path class="e red" d="M779,150 C803,150 803,223 827,223"/>
+      <path class="e" d="M979,63 L999,63"/>
+      <!-- revision -->
+      <g transform="translate(166,232)" class="nd purple"><rect width="230" height="60" rx="10"/><text x="115" y="22" class="t">Revise</text><text x="115" y="38" class="s">PROPOSE_TAXONOMY_REVISION()</text><text x="115" y="52" class="g">add-only, from gap encounters</text></g>
+      <path class="e purple" d="M281,231 V177"/>
+      <text x="0" y="40" class="txt" style="font-weight:600">Every version is a row.</text>
+      <text x="0" y="60" class="txt">Every label points back to one.</text>
+      <text x="0" y="86" class="s start" style="font-size:10px">TAXONOMY_VERSION: status &#183; parent_version_id &#183; locked_by &#183; reviewed_by &#183; review_notes</text>
+    </svg>
+    <div class="cards" style="grid-template-columns:repeat(3,1fr);margin-top:14px">
+      <div class="card blue"><h3>Only the champion's version ships</h3><p>APPROVED is set only by <span class="mono">PROMOTE_CONFIG</span>, past the eval gate. Drafts and locked candidates render too (<span class="mono">TAXONOMY_RENDERED</span>) so they can be scored, but never reach production output.</p></div>
+      <div class="card orange"><h3>Guardrails live in the procedures</h3><p>Only a DRAFT can be edited or locked. Lock refuses blank, reserved or duplicate labels. Exactly one version is ever APPROVED, and registry tables are <span class="mono">CREATE IF NOT EXISTS</span>.</p></div>
+      <div class="card"><h3>Gold labels are version-specific</h3><p>The first evaluation on a new version labels its gold set, and re-labeling is refused after that, so every eval of a version uses the same answer key.</p></div>
+    </div>
+  </div>
+  <aside class="notes">The taxonomy is a registry with states. A model drafts, or you fork an existing version, and a person edits it node by node. Locking freezes it: that's the point where it can be gold-labeled and evaluated, because an evaluation of something that can still change isn't evidence. It reaches production only when a config bound to it is promoted past the gate, on the next section's slides. Each row records who or what generated it, its parent, who locked it and who promoted it. The procedures enforce the rules: no edits after lock, no blank or duplicate labels, never two approved versions, and rejected drafts stay in the table as a record. Revisions come back in through the same DRAFT state.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== GOVERNANCE: GAPS AS SIGNAL ============================== -->
+<section class="slide" id="s-gaps" data-sec="2">
+  <p class="kicker">2 &middot; Taxonomy governance &middot; revising</p>
+  <h2>Classification gaps become the signal for the next version</h2>
+  <p class="lede">The classifier's own uncertainty is the input to revision: encounters it can't place point to concepts the taxonomy is missing.</p>
+  <div class="body">
+    <svg viewBox="0 0 1136 312" role="img" aria-label="Classified batch yields NO_GOOD_MATCH and LOW confidence signals, which feed the gap queue, a revision proposal and DRAFT v002">
+      <g transform="translate(0,70)" class="nd blue"><rect width="150" height="70" rx="10"/><text x="75" y="26" class="t">Production output</text><text x="75" y="44" class="s" style="font-size:9.5px">ENCOUNTER_THEME</text><text x="75" y="60" class="g">the champion's labels only</text></g>
+      <g transform="translate(190,22)" class="nd orange dash"><rect width="196" height="62" rx="10"/><text x="98" y="26" class="s" style="font-size:12px;fill:#E8890C;font-weight:700">NO_GOOD_MATCH</text><text x="98" y="45" class="g">model says nothing fits</text></g>
+      <g transform="translate(190,126)" class="nd orange"><rect width="196" height="62" rx="10"/><text x="98" y="26" class="t">LOW confidence</text><text x="98" y="45" class="g">forced a fit, said it was unsure</text></g>
+      <path class="e orange" d="M151,96 C170,96 170,53 189,53"/><path class="e orange" d="M151,114 C170,114 170,157 189,157"/>
+      <circle cx="420" cy="105" r="16" fill="#fff" stroke="#E8890C" stroke-width="1.5"/><text x="420" y="109" class="s" style="fill:#B26A08;font-weight:700;font-size:10px">OR</text>
+      <path class="e none orange" d="M387,53 C404,53 404,92 409,95"/><path class="e none orange" d="M387,157 C404,157 404,118 409,115"/>
+      <path class="e orange" d="M437,105 L461,105"/>
+      <g transform="translate(462,40)" class="nd orange"><rect width="206" height="130" rx="12"/>
+        <text x="103" y="26" class="t">Gap queue</text><text x="103" y="44" class="s">TAXONOMY_GAP_REVIEW</text>
+        <text x="103" y="64" class="g">note text + the model's evidence,</text><text x="103" y="78" class="g">readable without trusting it</text>
+        <text x="103" y="102" class="s">GROUP BY gap_signal</text><text x="103" y="118" class="g">a cluster, or scattered noise?</text></g>
+      <path class="e purple" d="M669,105 L699,105"/>
+      <g transform="translate(700,40)" class="nd purple"><rect width="222" height="130" rx="12"/>
+        <text x="111" y="26" class="t">Propose a revision</text><text x="111" y="44" class="s" style="font-size:9.5px">PROPOSE_TAXONOMY_REVISION()</text>
+        <text x="16" y="66" class="txt start" style="font-size:10.8px">&#183; additions only, no restructuring</text>
+        <text x="16" y="83" class="txt start" style="font-size:10.8px">&#183; the minimum that covers it</text>
+        <text x="16" y="100" class="txt start" style="font-size:10.8px">&#183; routing_note vs nearest label</text>
+        <text x="16" y="117" class="txt start" style="font-size:10.8px">&#183; "no real gap" is a valid answer</text></g>
+      <path class="e orange" d="M923,105 L953,105"/>
+      <g transform="translate(954,40)" class="nd orange"><rect width="182" height="130" rx="20" style="stroke-width:2.5"/>
+        <text x="91" y="32" class="t" style="font-size:18px">DRAFT v002</text>
+        <text x="91" y="54" class="g">v001 carried forward</text><text x="91" y="68" class="g">+ the proposed nodes</text>
+        <text x="91" y="94" class="s">TAXONOMY_DIFF()</text><text x="91" y="110" class="g">shows only the additions</text></g>
+
+      <text x="0" y="222" class="lbl">WHAT THE LOOP FOUND IN THIS BUILD</text>
+      <g transform="translate(0,234)"><rect width="250" height="72" rx="10" fill="#FFF4E5" stroke="#F6D3A3"/><text x="16" y="28" style="font:800 24px -apple-system,system-ui,sans-serif;fill:#E8890C">5</text><text x="16" y="47" class="txt">flagged across all</text><text x="16" y="62" class="txt">1,000 encounters</text></g>
+      <g transform="translate(295,234)"><rect width="250" height="72" rx="10" fill="#FFF4E5" stroke="#F6D3A3"/><text x="16" y="28" style="font:800 24px -apple-system,system-ui,sans-serif;fill:#E8890C">5 of 5</text><text x="16" y="47" class="txt">genuinely transportation notes</text><text x="16" y="62" class="txt">100% precision, 6% recall</text></g>
+      <g transform="translate(590,234)"><rect width="250" height="72" rx="10" fill="#F2EEF9" stroke="#D6CBEA"/><text x="16" y="28" style="font:800 24px -apple-system,system-ui,sans-serif;fill:#7254A3">+1</text><text x="16" y="47" class="txt">subtheme proposed:</text><text x="16" y="62" class="txt" style="font-weight:600">Transportation Barrier To Care</text></g>
+      <g transform="translate(885,234)"><rect width="251" height="72" rx="10" fill="#E7F6EF" stroke="#BFE3D0"/><text x="16" y="28" style="font:800 24px -apple-system,system-ui,sans-serif;fill:#1C8F5F">Locked</text><text x="16" y="47" class="txt">then bound into a config, scored</text><text x="16" y="62" class="txt">on gold, promoted if it passes</text></g>
+      <path class="e" d="M251,269 L294,269"/><path class="e" d="M546,269 L589,269"/><path class="e" d="M841,269 L884,269"/>
+    </svg>
+    <div class="cards" style="grid-template-columns:repeat(3,1fr);margin-top:14px">
+      <div class="card"><h3>Why two signals</h3><p>A small model under a strict enum rarely picks NO_GOOD_MATCH. LOW confidence is the higher-recall half. Both were 100% precise on genuine gaps.</p></div>
+      <div class="card"><h3>Precision beats recall here</h3><p>You don't need every instance of a missing concept, just enough clean examples to name it. Five was enough.</p></div>
+      <div class="card"><h3>Add-only keeps history comparable</h3><p>No renames or re-parenting, so existing labels and gold stay valid, and the reviewer reads one added row instead of 79.</p></div>
+    </div>
+  </div>
+  <aside class="notes">This is how production feeds governance. Two signals come straight off the champion's output: NO_GOOD_MATCH, where the model says nothing fits, and LOW confidence, where it forced a fit and told us so. Evaluation runs of candidates never show up here, so the queue is about real traffic. The gap queue shows the note text and the model's evidence, so a reviewer can name the missing concept without trusting the model's conclusion. Then a model drafts the smallest add-only revision that covers the evidence, and it's allowed to say there's no real gap. The draft is a starting point: edit it, lock it, and it goes through evaluation like any other candidate. Gap detection needs volume: with only the 200 gold encounters classified, one gets flagged; across all 1,000 it's five.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== 10. WORKFLOW LOOP ============================== -->
+<section class="slide" id="s-loop" data-sec="2">
+  <p class="kicker">2 &middot; Taxonomy governance &middot; revision loop</p>
+  <h2>The revision loop, and every step is a SQL object</h2>
+  <div class="body">
+    <svg viewBox="0 0 1136 470" role="img" aria-label="Seven-step revision loop from classify to gate">
+      <ellipse cx="568" cy="230" rx="380" ry="185" fill="none" stroke="#BFD3E2" stroke-width="2" stroke-dasharray="6 6"/>
+      <!-- direction chevrons at midpoints -->
+      <g fill="none" stroke="#29B5E8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M-6,-7 L4,0 L-6,7" transform="translate(733,63) rotate(13.2)"/>
+        <path d="M-6,-7 L4,0 L-6,7" transform="translate(938.5,189) rotate(64.9)"/>
+        <path d="M-6,-7 L4,0 L-6,7" transform="translate(865,345) rotate(148.6)"/>
+        <path d="M-6,-7 L4,0 L-6,7" transform="translate(568,415) rotate(180)"/>
+        <path d="M-6,-7 L4,0 L-6,7" transform="translate(271,345) rotate(211.4)"/>
+        <path d="M-6,-7 L4,0 L-6,7" transform="translate(197.5,189) rotate(295.1)"/>
+        <path d="M-6,-7 L4,0 L-6,7" transform="translate(403,63) rotate(346.8)"/>
+      </g>
+      <!-- nodes: centered on the ellipse, w=210 h=60 -->
+      <g transform="translate(463,15)" class="nd purple"><rect width="210" height="60" rx="12"/><text x="105" y="23" class="t">1 &#183; Run production</text><text x="105" y="42" class="s">CLASSIFY_BATCH('BACKLOG')</text></g>
+      <g transform="translate(760,85)" class="nd green"><rect width="210" height="60" rx="12"/><text x="105" y="23" class="t">2 &#183; Watch the champion</text><text x="105" y="42" class="s">EVALUATE_CONFIG &#183; drift</text></g>
+      <g transform="translate(833.5,241)" class="nd orange"><rect width="210" height="60" rx="12"/><text x="105" y="23" class="t">3 &#183; Surface gaps</text><text x="105" y="42" class="s">TAXONOMY_GAP_REVIEW</text></g>
+      <g transform="translate(628,367)" class="nd purple"><rect width="210" height="60" rx="12"/><text x="105" y="23" class="t">4 &#183; Draft a revision</text><text x="105" y="42" class="s" style="font-size:9.5px">PROPOSE_TAXONOMY_REVISION</text></g>
+      <g transform="translate(298,367)" class="nd orange"><rect width="210" height="60" rx="12" style="stroke-width:2.5"/><text x="105" y="23" class="t">5 &#183; Edit and lock v002</text><text x="105" y="42" class="s">EDIT_TAXONOMY_NODE &#183; LOCK</text></g>
+      <g transform="translate(92.5,241)" class="nd green"><rect width="210" height="60" rx="12"/><text x="105" y="23" class="t">6 &#183; Register and evaluate</text><text x="105" y="42" class="s" style="font-size:9.5px">REGISTER &#183; EVALUATE_CONFIG</text></g>
+      <g transform="translate(166,85)" class="nd orange"><rect width="210" height="60" rx="12" style="stroke-width:2.5"/><text x="105" y="23" class="t">7 &#183; Promote past the gate</text><text x="105" y="42" class="s">PROMOTE_CONFIG</text></g>
+      <!-- center -->
+      <text x="568" y="196" class="t" style="font-size:20px">Run, watch, find what's missing, fix it, prove it, ship it</text>
+      <text x="568" y="228" class="txt" style="text-anchor:middle;font-size:14px">Every label is stamped with <tspan style="font-family:var(--mono);fill:#11567F">config_name</tspan> and <tspan style="font-family:var(--mono);fill:#11567F">taxonomy_version_id</tspan>.</text>
+      <text x="568" y="250" class="txt" style="text-anchor:middle;font-size:14px">A candidate is proven on gold before it touches production.</text>
+      <g transform="translate(448,272)"><rect width="240" height="28" rx="14" fill="#FFF4E5" stroke="#F6D3A3"/><text x="120" y="19" class="g" style="font-size:12px;fill:#B26A08;font-weight:600">orange = a person decides</text></g>
+    </svg>
+  </div>
+  <aside class="notes">This is the prompt and taxonomy update cycle, shaped like an ML model registry. Production runs the champion. Its drift is checked by evaluating it against its own previous score. Production output surfaces the gaps, a model drafts an add-only revision, and a person edits and locks it. Then it's bound into a candidate config with the same prompt, registered, and evaluated on gold against the champion: that pass labels gold for the new version on first use. If the gate passes, a person promotes it; if not, they fix it or promote with a reason that gets logged. Two human decision points, both explicit. A prompt change takes the same path from step 6, and costs less because it reuses the champion's gold labels.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== SECTION 3 DIVIDER ============================== -->
+<section class="slide divider" id="s-sec3" data-sec="3">
+  <div class="div-grid">
+    <div>
+      <div class="div-num">3</div>
+      <h1>Evaluation and operations</h1>
+      <p class="title-sub">How we know a run is good enough to ship, how we'd find out when it stops being good enough, and what each run costs.</p>
+    </div>
+    <div>
+      <p class="toc-h">In this section</p>
+      <ul class="toc">
+        <li><b>Evaluating classification</b>A gold set, scored overall and per segment</li>
+        <li><b>The eval gate and regression alert</b>An absolute floor plus a per-segment check against the champion</li>
+        <li><b>Promotion</b>The only way into production: pass the gate, or log why not</li>
+        <li><b>Measured results</b>v001 vs the revision on the same gold set</li>
+        <li><b>Cost monitoring</b>Credits and tokens per run, measured</li>
+      </ul>
+    </div>
+  </div>
+  <svg class="roadmap" viewBox="0 0 1136 44" role="img" aria-label="Section 3 of 3">
+    <rect x="0" y="4" width="370" height="36" rx="18" fill="#fff" stroke="#D8E1EA"/><text x="185" y="27" class="t" style="fill:#94A3B8">1 &#183; Classification</text>
+    <rect x="383" y="4" width="370" height="36" rx="18" fill="#fff" stroke="#D8E1EA"/><text x="568" y="27" class="t" style="fill:#94A3B8">2 &#183; Taxonomy governance</text>
+    <rect x="766" y="4" width="370" height="36" rx="18" fill="#1C8F5F"/><text x="951" y="27" class="t" style="fill:#fff">3 &#183; Evaluation and operations</text>
+  </svg>
+  <aside class="notes">Section three is what makes the first two trustworthy. Evaluation tells us whether a candidate is good, the gate compares it to what's in production, promotion is the only door through, the alert watches the champion for regressions, and RUN_COST says what it all cost.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== 9. EVALUATION ============================== -->
+<section class="slide" id="s-eval" data-sec="3">
+  <p class="kicker">3 &middot; Evaluation and operations</p>
+  <h2>Evaluation that catches what an average hides</h2>
+  <div class="body" style="display:grid;grid-template-columns:1fr 1fr;gap:40px">
+    <svg viewBox="0 0 560 420" role="img" aria-label="Test data design: the 200 gold encounters were generated from five test scenarios, with note length varied as noise">
+      <text x="0" y="18" class="t start" style="font-size:16px;fill:#B26A08">Test data: how the 200 gold notes were made hard</text>
+      <rect x="0" y="36" width="336" height="46" fill="#29B5E8"/>
+      <rect x="336" y="36" width="84" height="46" fill="#11567F"/>
+      <rect x="420" y="36" width="56" height="46" fill="#7254A3"/>
+      <rect x="476" y="36" width="42" height="46" fill="#E8890C"/>
+      <rect x="518" y="36" width="42" height="46" fill="url(#hatch)" stroke="#B4C0CE"/>
+      <text x="168" y="64" class="t" style="fill:#fff">120</text>
+      <text x="378" y="64" class="t" style="fill:#fff">30</text>
+      <text x="448" y="64" class="t" style="fill:#fff">20</text>
+      <text x="497" y="64" class="t" style="fill:#fff">15</text>
+      <text x="539" y="64" class="t" style="fill:#475569">15</text>
+
+      <g transform="translate(0,112)">
+        <rect width="14" height="14" rx="3" fill="#29B5E8"/><text x="24" y="12" class="txt" style="font-weight:600">Straightforward</text><text x="170" y="12" class="txt">one clear concern</text>
+        <rect y="28" width="14" height="14" rx="3" fill="#11567F"/><text x="24" y="40" class="txt" style="font-weight:600">Near-neighbour</text><text x="170" y="40" class="txt">plants a confusable cue</text>
+        <rect y="56" width="14" height="14" rx="3" fill="#7254A3"/><text x="24" y="68" class="txt" style="font-weight:600">Multi-label</text><text x="170" y="68" class="txt">two seeded concerns</text>
+        <rect y="84" width="14" height="14" rx="3" fill="#E8890C"/><text x="24" y="96" class="txt" style="font-weight:600">Gap</text><text x="170" y="96" class="txt">concept withheld from v001</text>
+        <rect y="112" width="14" height="14" rx="3" fill="url(#hatch)" stroke="#B4C0CE"/><text x="24" y="124" class="txt" style="font-weight:600">Ambiguous</text><text x="170" y="124" class="txt">written to be undecidable</text>
+      </g>
+
+      <text x="0" y="284" class="t start">Note length varied, as noise only</text>
+      <g transform="translate(0,298)">
+        <rect width="96" height="28" rx="14" fill="#F4F6F9" stroke="#94A3B8"/><text x="48" y="19" class="s" style="font-size:11px">TERSE</text>
+        <rect x="108" width="96" height="28" rx="14" fill="#F4F6F9" stroke="#94A3B8"/><text x="156" y="19" class="s" style="font-size:11px">NORMAL</text>
+        <rect x="216" width="108" height="28" rx="14" fill="#F4F6F9" stroke="#94A3B8"/><text x="270" y="19" class="s" style="font-size:11px">RAMBLING</text>
+      </g>
+      <text x="0" y="350" class="txt">Real notes carry none of these tags, so the pipeline never</text>
+      <text x="0" y="368" class="txt">reads them. They are shown as evidence the test is fair.</text>
+      <text x="0" y="398" class="txt muted" style="fill:#64748B">Notes are generated from a seeded scenario spec, so ground truth is exact.</text>
+    </svg>
+
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <svg viewBox="0 0 520 150" role="img" aria-label="Gold labeler and classifier are different model families">
+        <text x="0" y="16" class="t start" style="font-size:16px">Who grades whom</text>
+        <g transform="translate(0,34)" class="nd navy"><rect width="200" height="60" rx="10"/><text x="100" y="24" class="s" style="font-size:12px;font-weight:700">openai-gpt-5.2</text><text x="100" y="44" class="g">labels gold, one at a time</text></g>
+        <g transform="translate(320,34)" class="nd purple"><rect width="200" height="60" rx="10"/><text x="100" y="24" class="s" style="font-size:12px;font-weight:700;fill:#7254A3">claude-haiku-4-5</text><text x="100" y="44" class="g">classifies in production</text></g>
+        <path class="e none dash" d="M201,64 L319,64"/>
+        <text x="260" y="58" class="g" style="font-weight:600">different families</text>
+        <g transform="translate(0,112)"><rect width="520" height="30" rx="8" fill="#FFF4E5" stroke="#F6D3A3"/><text x="14" y="20" class="txt start"><tspan style="font-family:var(--mono);fill:#B26A08;font-weight:600">HUMAN_VERIFIED = FALSE</tspan> today. A nurse SME pass flips it.</text></g>
+      </svg>
+      <svg viewBox="0 0 520 230" role="img" aria-label="Metrics scored against gold and metrics computed on every run">
+        <text x="0" y="16" class="t start" style="font-size:16px">What gets scored</text>
+        <g transform="translate(0,34)">
+          <rect width="252" height="132" rx="10" fill="#E7F6EF" stroke="#BFE3D0"/>
+          <text x="14" y="24" class="lbl" style="fill:#1C8F5F">AGAINST GOLD</text>
+          <text x="14" y="52" class="txt">Primary subtheme accuracy</text>
+          <text x="14" y="74" class="txt">Theme and category accuracy</text>
+          <text x="14" y="96" class="txt">Label-set micro F1</text>
+          <text x="14" y="118" class="txt" style="fill:#64748B">(multi-label credit)</text>
+        </g>
+        <g transform="translate(268,34)">
+          <rect width="252" height="132" rx="10" fill="#F4F6F9" stroke="#D8E1EA"/>
+          <text x="14" y="24" class="lbl">EVERY RUN, NO GOLD NEEDED</text>
+          <text x="14" y="52" class="txt">NO_GOOD_MATCH rate</text>
+          <text x="14" y="74" class="txt">Low or medium confidence rate</text>
+          <text x="14" y="96" class="txt">Error rate</text>
+          <text x="14" y="118" class="txt">Out-of-taxonomy labels</text>
+        </g>
+        <text x="0" y="196" class="txt">Each one overall and by segment: category, label count, note length.</text>
+        <text x="0" y="218" class="s start" style="font-size:11px">EVALUATE_CONFIG() &#8594; RUN_EVAL() &#8594; EVAL_SCORECARD &#183; EVAL_SEGMENT_DETAIL</text>
+      </svg>
+    </div>
+  </div>
+  <aside class="notes">There's no hand-labeled gold set for this domain yet, so the build shows how to bootstrap one: a frontier model from a different family than the classifier labels each gold encounter one at a time with the full taxonomy. It's still model grading model, and I say that out loud. HUMAN_VERIFIED is a real column and RUN_EVAL has a verified-only switch, which refuses today because nobody has adjudicated yet. The run-level metrics on the right need no gold at all, so they can be watched on every production batch. On the left is how we made the synthetic data hard: each gold note came from a test scenario, like a planted confusable pair or a concept kept out of the taxonomy. Be clear that this is test-data design. Their notes will not have those tags, so the evaluation segments by things a real gold set has: the category of the gold label, how many labels it has, and note length. The gate that uses all of this is the next slide.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== EVAL: GATE + ALERT ============================== -->
+<section class="slide" id="s-gate" data-sec="3">
+  <p class="kicker">3 &middot; Evaluation and operations &middot; gate and alert</p>
+  <h2>The gate decides what ships. The alert watches for regressions.</h2>
+  <p class="lede"><span class="mono">EVAL_GATE</span> is a view: every evaluation gets PASS or the first reason it failed, judged against the champion in production. Promotion reads it; the alert watches the champion with it.</p>
+  <div class="body">
+    <svg viewBox="0 0 1136 330" role="img" aria-label="Gate config, the champion's latest eval and the candidate's eval feed four ordered checks in EVAL_GATE; the result feeds promotion and a daily regression alert">
+      <!-- inputs -->
+      <g transform="translate(0,10)" class="nd white"><rect width="220" height="134" rx="10"/>
+        <text x="14" y="24" class="t start">Gate config</text><text x="14" y="40" class="s start">EVAL_GATE_CONFIG</text>
+        <g class="s" style="font-size:10.5px;fill:#334155"><text x="14" y="66" class="start" style="text-anchor:start">min_primary_accuracy</text><text x="14" y="84" style="text-anchor:start">max_error_rate</text><text x="14" y="102" style="text-anchor:start">max_segment_regression</text><text x="14" y="120" style="text-anchor:start">min_segment_n</text></g>
+        <g class="s" style="font-size:10.5px;font-weight:700;text-anchor:end"><text x="206" y="66" style="text-anchor:end">0.70</text><text x="206" y="84" style="text-anchor:end">0.01</text><text x="206" y="102" style="text-anchor:end">0.10</text><text x="206" y="120" style="text-anchor:end">20</text></g></g>
+      <g transform="translate(0,164)" class="nd navy"><rect width="220" height="64" rx="10"/><text x="110" y="23" class="t">Champion's latest eval</text><text x="110" y="40" class="s">ACTIVE_CONFIG &#8594; EVAL_RUN</text><text x="110" y="55" class="g">what production runs today</text></g>
+      <g transform="translate(0,248)" class="nd green"><rect width="220" height="64" rx="10"/><text x="110" y="23" class="t">Candidate's eval</text><text x="110" y="40" class="s">EVALUATE_CONFIG()</text><text x="110" y="55" class="g">same gold, overall + per segment</text></g>
+      <path class="e" d="M221,77 L269,77"/><path class="e" d="M221,196 L269,196"/><path class="e green" d="M221,280 L269,280"/>
+      <!-- gate panel -->
+      <rect x="270" y="0" width="420" height="330" rx="12" fill="#F4FBF7" stroke="#BFE3D0"/>
+      <text x="288" y="24" class="lbl" style="fill:#1C8F5F">EVAL_GATE &#183; CHECKED IN ORDER, FIRST FAILURE WINS</text>
+      <g transform="translate(282,38)"><rect width="396" height="66" rx="8" fill="#fff" stroke="#D8E1EA"/><circle cx="22" cy="24" r="12" fill="#1C8F5F"/><text x="22" y="28" class="t" style="fill:#fff;font-size:12px">1</text>
+        <text x="46" y="22" class="t start" style="font-size:13px">Accuracy floor</text><text x="46" y="40" class="s start" style="text-anchor:start">subtheme_accuracy &gt;= 0.70</text><text x="46" y="56" class="s" style="text-anchor:start;fill:#C73E3E;font-size:9.5px">FAIL: accuracy below floor</text>
+        <rect x="300" y="10" width="84" height="20" rx="10" fill="#E7F6EF" stroke="#BFE3D0"/><text x="342" y="24" class="g" style="fill:#1C8F5F;font-weight:700;font-size:9.5px">ABSOLUTE</text></g>
+      <g transform="translate(282,110)"><rect width="396" height="66" rx="8" fill="#fff" stroke="#D8E1EA"/><circle cx="22" cy="24" r="12" fill="#1C8F5F"/><text x="22" y="28" class="t" style="fill:#fff;font-size:12px">2</text>
+        <text x="46" y="22" class="t start" style="font-size:13px">Error ceiling</text><text x="46" y="40" class="s start" style="text-anchor:start">error_rate &lt;= 0.01</text><text x="46" y="56" class="s" style="text-anchor:start;fill:#C73E3E;font-size:9.5px">FAIL: error rate above ceiling</text>
+        <rect x="300" y="10" width="84" height="20" rx="10" fill="#E7F6EF" stroke="#BFE3D0"/><text x="342" y="24" class="g" style="fill:#1C8F5F;font-weight:700;font-size:9.5px">ABSOLUTE</text></g>
+      <g transform="translate(282,182)"><rect width="396" height="66" rx="8" fill="#fff" stroke="#D8E1EA"/><circle cx="22" cy="24" r="12" fill="#1C8F5F"/><text x="22" y="28" class="t" style="fill:#fff;font-size:12px">3</text>
+        <text x="46" y="22" class="t start" style="font-size:13px">The enum held</text><text x="46" y="40" class="s start" style="text-anchor:start">out_of_taxonomy_labels = 0</text><text x="46" y="56" class="s" style="text-anchor:start;fill:#C73E3E;font-size:9.5px">FAIL: out-of-taxonomy labels present</text>
+        <rect x="300" y="10" width="84" height="20" rx="10" fill="#E7F6EF" stroke="#BFE3D0"/><text x="342" y="24" class="g" style="fill:#1C8F5F;font-weight:700;font-size:9.5px">ABSOLUTE</text></g>
+      <g transform="translate(282,254)"><rect width="396" height="66" rx="8" fill="#fff" stroke="#D8E1EA" style="stroke-width:2"/><circle cx="22" cy="24" r="12" fill="#11567F"/><text x="22" y="28" class="t" style="fill:#fff;font-size:12px">4</text>
+        <text x="46" y="22" class="t start" style="font-size:13px">No segment regression</text><text x="46" y="40" class="s start" style="text-anchor:start">every segment with n &gt;= 20 within 0.10 of the champion</text><text x="46" y="56" class="s" style="text-anchor:start;fill:#C73E3E;font-size:9.5px">FAIL: segment regression vs champion, names it</text>
+        <rect x="300" y="10" width="84" height="20" rx="10" fill="#DDEBF3" stroke="#9FC3DA"/><text x="342" y="24" class="g" style="fill:#11567F;font-weight:700;font-size:9.5px">REGRESSION</text></g>
+      <!-- result -->
+      <path class="e green" d="M691,165 L729,165"/>
+      <g transform="translate(730,120)" class="nd green"><rect width="140" height="90" rx="12" style="stroke-width:2.5"/><text x="70" y="30" class="s" style="font-size:12px;font-weight:700;fill:#1C8F5F">gate_result</text><text x="70" y="52" class="g">PASS, or the first</text><text x="70" y="66" class="g">FAIL reason</text></g>
+      <text x="800" y="110" class="g" style="fill:#1C8F5F;font-weight:600">revision: PASS, 0 regressed</text>
+      <path class="e green" d="M800,211 V280 H899"/>
+      <text x="794" y="244" class="s" style="text-anchor:end;fill:#1C8F5F;font-size:10px">read by</text>
+      <text x="794" y="258" class="s" style="text-anchor:end;fill:#1C8F5F;font-size:10px">PROMOTE_CONFIG()</text>
+      <!-- alert -->
+      <path class="e red" d="M871,150 C886,150 886,110 899,110"/>
+      <g transform="translate(900,10)" class="nd red"><rect width="236" height="198" rx="12"/>
+        <text x="118" y="26" class="t">Regression alert</text><text x="118" y="44" class="s">QUALITY_REGRESSION_ALERT</text>
+        <text x="16" y="72" class="s" style="text-anchor:start;fill:#334155">SCHEDULE = '1440 MINUTE'</text>
+        <text x="16" y="94" class="s" style="text-anchor:start;fill:#334155">IF an eval of the champion</text>
+        <text x="16" y="110" class="s" style="text-anchor:start;fill:#334155">  in the last day did not PASS</text>
+        <text x="16" y="132" class="s" style="text-anchor:start;fill:#334155">THEN email the failing evals</text>
+        <text x="16" y="148" class="s" style="text-anchor:start;fill:#334155">  and why, via the integration</text>
+        <text x="16" y="164" class="s" style="text-anchor:start;fill:#334155">  named in the alert's CONFIG</text>
+        <rect x="16" y="172" width="204" height="20" rx="10" fill="#fff" stroke="#E9A3A3"/><text x="118" y="186" class="g" style="fill:#C73E3E;font-weight:600">suspended in this demo</text></g>
+      <g transform="translate(900,248)" class="nd green"><rect width="236" height="64" rx="10"/><text x="118" y="23" class="t">Promotion</text><text x="118" y="40" class="s">PROMOTE_CONFIG() &#183; PROMOTION_LOG</text><text x="118" y="55" class="g">PASS, or a recorded override</text></g>
+    </svg>
+    <p class="callout" style="margin-top:12px">Why check 4 exists: in comparable prior work, a variant cleared the overall floor at 0.914 while terse inputs quietly fell from 1.00 to 0.80. An aggregate-only gate would have shipped it.</p>
+  </div>
+  <aside class="notes">The gate is a view, so it's always current and anyone can query it. It reads one config row: a 0.70 accuracy floor, a 1% error ceiling, a 0.10 allowed drop per segment, and a minimum of 20 encounters before a segment is gated, because at n=10 one note is 10 points. Checks run in order and the first failure is the reason you see. The fourth check is the one that earns its place: it compares every category, label-count and note-length segment to the champion's latest evaluation. Nobody pins a baseline by hand, so the comparison can't quietly drift away from what's actually in production. It isn't vacuous: tighten the margin to 0.02 and the revision fails on the Clinical Symptoms category, which dipped 2 encounters. For an eval of the champion itself, the baseline is its own previous eval, which is the drift check. The alert is the operational half: once a day, if an eval of the champion didn't pass, it fires. A failing candidate isn't an incident, refusing to promote it is the gate doing its job. It's created suspended because delivering it needs an email notification integration and verified recipients; both come from the alert's CONFIG, so wiring it up is an ALTER, not a code change.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== EVAL: PROMOTION ============================== -->
+<section class="slide" id="s-promote" data-sec="3">
+  <p class="kicker">3 &middot; Evaluation and operations &middot; promotion</p>
+  <h2>Register, evaluate, promote: the only way into production</h2>
+  <p class="lede">The same loop as an ML model registry. A config is the unit: prompt + model + taxonomy version. Candidates are scored on gold before they can replace the champion, and production never runs anything else.</p>
+  <div class="body" style="display:grid;grid-template-columns:1fr 380px;gap:28px">
+    <svg viewBox="0 0 720 420" role="img" aria-label="A candidate config is registered, evaluated on gold against the champion, then promoted if the gate passes or with a logged override">
+      <!-- register -->
+      <g transform="translate(0,10)" class="nd orange"><rect width="220" height="84" rx="12"/><text x="110" y="24" class="t">Register a candidate</text><text x="110" y="42" class="s">REGISTER_CONFIG()</text><text x="110" y="60" class="g">fork the champion: new prompt,</text><text x="110" y="74" class="g">new locked taxonomy, or both</text></g>
+      <path class="e" d="M221,52 L259,52"/>
+      <!-- evaluate -->
+      <g transform="translate(260,10)" class="nd green"><rect width="220" height="84" rx="12"/><text x="110" y="24" class="t">Evaluate on gold</text><text x="110" y="42" class="s">EVALUATE_CONFIG()</text><text x="110" y="60" class="g">labels gold if the version is new,</text><text x="110" y="74" class="g">then a GOLD run + RUN_EVAL</text></g>
+      <path class="e green" d="M481,52 L519,52"/>
+      <!-- gate -->
+      <g transform="translate(520,10)" class="nd green"><rect width="200" height="84" rx="12" style="stroke-width:2.5"/><text x="100" y="24" class="t">Gate vs champion</text><text x="100" y="42" class="s">EVAL_GATE</text><text x="100" y="60" class="g">floor + no segment</text><text x="100" y="74" class="g">regression</text></g>
+      <!-- evaluation never reaches production -->
+      <g transform="translate(260,112)"><rect width="220" height="36" rx="8" fill="#F4F6F9" stroke="#D8E1EA"/><text x="110" y="16" class="s" style="font-size:9.5px">purpose = EVALUATION</text><text x="110" y="29" class="g" style="font-size:9.5px">never in ENCOUNTER_THEME</text></g>
+      <!-- decision -->
+      <path class="e green" d="M620,95 V140"/>
+      <g transform="translate(620,186)"><polygon points="0,-44 74,0 0,44 -74,0" fill="#fff" stroke="#1C8F5F" stroke-width="1.8"/><text x="0" y="5" class="t" style="font-size:13px">PASS?</text></g>
+      <path class="e green" d="M620,231 V270"/><text x="632" y="256" class="g start" style="fill:#1C8F5F;font-weight:700">yes</text>
+      <path class="e red" d="M545,186 H462"/><text x="510" y="178" class="g" style="fill:#C73E3E;font-weight:700">no</text>
+      <g transform="translate(242,162)" class="nd red"><rect width="220" height="72" rx="12"/><text x="110" y="24" class="t">REFUSED</text><text x="110" y="42" class="g">fix the candidate, or give</text><text x="110" y="57" class="g">an override reason</text></g>
+      <path class="e orange dash" d="M352,235 V312 H519"/><text x="362" y="300" class="g start" style="fill:#B26A08;font-weight:600">override reason, logged</text>
+      <!-- promote -->
+      <g transform="translate(520,271)" class="nd orange"><rect width="200" height="84" rx="12" style="stroke-width:2.5"/><text x="100" y="24" class="t">Promote</text><text x="100" y="42" class="s">PROMOTE_CONFIG()</text><text x="100" y="60" class="g">a person decides;</text><text x="100" y="74" class="g">one transaction</text></g>
+      <!-- what promotion does -->
+      <g transform="translate(0,250)">
+        <rect width="300" height="162" rx="10" fill="#FBFCFE" stroke="#D8E1EA"/>
+        <text x="14" y="24" class="lbl">IN ONE TRANSACTION</text>
+        <text x="14" y="48" class="txt">&#183; its taxonomy becomes APPROVED,</text>
+        <text x="14" y="64" class="txt">&#160;&#160;the old one SUPERSEDED</text>
+        <text x="14" y="86" class="txt">&#183; it becomes the champion</text>
+        <text x="14" y="108" class="txt">&#183; a PROMOTION_LOG row freezes the</text>
+        <text x="14" y="124" class="txt">&#160;&#160;verdict, baseline and override</text>
+        <text x="14" y="148" class="txt" style="fill:#64748B">No re-classification: BACKLOG is yours to run.</text>
+      </g>
+      <path class="e none dash" d="M519,345 H301"/>
+      <text x="718" y="388" class="g" style="font-weight:600;text-anchor:end">rollback = promote the old config again</text>
+    </svg>
+    <div style="display:flex;flex-direction:column;gap:12px;justify-content:center">
+      <p class="toc-h" style="margin:0">Measured on this build, 200 gold encounters</p>
+      <div class="card"><h3>Prompt-only candidate</h3><p>Same taxonomy, stricter second-label rule. <b>0.840</b> vs champion 0.830, <b>PASS</b>. Reused the champion's gold labels: one gold run, about 1.07 credits.</p></div>
+      <div class="card green"><h3>Taxonomy candidate (hand-edited v002)</h3><p>Champion prompt on a fork of v001 that adds transportation. <b>0.885</b> vs 0.830, <b>PASS</b>. Unplaceable gold 9 &#8594; 1, Access category 0.750 &#8594; 0.889.</p></div>
+      <div class="card orange"><h3>Rolling back</h3><p>Promoting v001 again <b>failed</b> on that same Access regression. It went through only with a written reason, which is now in <span class="mono">PROMOTION_LOG</span>.</p></div>
+    </div>
+  </div>
+  <aside class="notes">This is the ML-registry flow. The unit isn't the taxonomy or the prompt on its own, it's the config: prompt, model and taxonomy version together, because that's what actually produces a label. Register a candidate by forking the champion. EVALUATE_CONFIG classifies the gold set with exactly that recipe as an evaluation run, so nothing reaches the business output, and if the taxonomy is new it labels the gold set for it first. The gate compares it to the champion. If it passes, a person promotes it, and that's one transaction: the taxonomy is approved, the old one superseded, the config becomes the champion, and the log row records the verdict it was judged on. If it fails, promotion is refused unless someone writes down why they're shipping it anyway. The numbers on the right are from this build. Note the rollback: going back to v001 is itself gated, and it failed on exactly the category the revision fixed, which is the gate telling the truth.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== 11. RESULTS ============================== -->
+<section class="slide" id="s-results" data-sec="3">
+  <p class="kicker">3 &middot; Evaluation and operations &middot; measured results</p>
+  <h2>The aggregate moved 5.5 points. What we fixed moved far more.</h2>
+  <div class="body" style="display:grid;grid-template-columns:330px 1fr;gap:36px">
+    <div style="display:flex;flex-direction:column;gap:14px;justify-content:center">
+      <div class="card"><div class="stat-sm" style="color:#11567F">+5.5 pts</div><div class="stat-label">overall subtheme accuracy</div><div class="muted small">0.830 &rarr; 0.885</div></div>
+      <div class="card blue"><div class="stat-sm" style="color:#11567F">9 &rarr; 0</div><div class="stat-label">gold encounters with no home in the taxonomy</div><div class="muted small">and that category rose 0.750 &rarr; 0.917. Both exist on real data.</div></div>
+      <div class="card orange"><div class="stat-sm" style="color:#E8890C">+80 pts</div><div class="stat-label">gap test scenario (test data)</div><div class="muted small">0.200 &rarr; 1.000, the notes built around the withheld concept</div></div>
+      <div class="card green"><p><b>0</b> out-of-taxonomy labels in both versions. Gate: <b>PASS</b>, 0 segments regressed. Gap detection: 5 flagged, all 5 genuine.</p></div>
+    </div>
+    <svg viewBox="0 0 680 440" role="img" aria-label="Grouped bar chart of subtheme accuracy, v001 versus the revision, for overall, four real-data segments, and the gap test scenario">
+      <!-- legend -->
+      <rect x="380" y="0" width="14" height="14" rx="3" fill="#A9BCCF"/><text x="400" y="12" class="txt">v001 (78 subthemes)</text>
+      <rect x="530" y="0" width="14" height="14" rx="3" fill="#29B5E8"/><text x="550" y="12" class="txt">revision (79)</text>
+      <!-- test-data highlight -->
+      <rect x="535" y="30" width="94" height="322" rx="8" fill="#FFF4E5"/>
+      <!-- grid: y = 330 - v*300 -->
+      <g stroke="#E5EBF1" stroke-width="1">
+        <line x1="50" y1="30" x2="630" y2="30"/><line x1="50" y1="105" x2="630" y2="105"/><line x1="50" y1="180" x2="630" y2="180"/><line x1="50" y1="255" x2="630" y2="255"/>
+      </g>
+      <line x1="50" y1="330" x2="630" y2="330" stroke="#94A3B8"/>
+      <g class="g" style="text-anchor:end;font-size:11px">
+        <text x="42" y="34">1.00</text><text x="42" y="109">0.75</text><text x="42" y="184">0.50</text><text x="42" y="259">0.25</text><text x="42" y="334">0</text>
+      </g>
+      <!-- bars: group centers 98.3, 195, 291.7, 388.3, 485, 581.7 -->
+      <g>
+        <rect x="66.3" y="81.0" width="30" height="249.0" fill="#A9BCCF"/><rect x="100.3" y="64.5" width="30" height="265.5" fill="#29B5E8"/>
+        <rect x="163" y="105.0" width="30" height="225.0" fill="#A9BCCF"/><rect x="197" y="54.9" width="30" height="275.1" fill="#29B5E8"/>
+        <rect x="259.7" y="62.7" width="30" height="267.3" fill="#A9BCCF"/><rect x="293.7" y="72.9" width="30" height="257.1" fill="#29B5E8"/>
+        <rect x="356.3" y="87.3" width="30" height="242.7" fill="#A9BCCF"/><rect x="390.3" y="87.3" width="30" height="242.7" fill="#29B5E8"/>
+        <rect x="453" y="84.6" width="30" height="245.4" fill="#A9BCCF"/><rect x="487" y="43.5" width="30" height="286.5" fill="#29B5E8"/>
+        <rect x="549.7" y="270.0" width="30" height="60.0" fill="#A9BCCF"/><rect x="583.7" y="30.0" width="30" height="300.0" fill="#E8890C"/>
+      </g>
+      <g class="g" style="font-size:10px;fill:#334155">
+        <text x="81.3" y="76.0">.830</text><text x="115.3" y="59.5">.885</text>
+        <text x="178" y="100.0">.750</text><text x="212" y="49.9">.917</text>
+        <text x="274.7" y="57.7">.891</text><text x="308.7" y="67.9">.857</text>
+        <text x="371.3" y="82.3">.809</text><text x="405.3" y="82.3">.809</text>
+        <text x="468" y="79.6">.818</text><text x="502" y="38.5">.955</text>
+        <text x="564.7" y="265.0">.200</text><text x="598.7" y="25.0" style="font-weight:700;fill:#B26A08">1.00</text>
+      </g>
+      <!-- x labels -->
+      <g class="t" style="font-size:12px">
+        <text x="98.3" y="352">Overall</text><text x="195" y="352">Access cat.</text><text x="291.7" y="352">Clinical cat.</text>
+        <text x="388.3" y="352">Short notes</text><text x="485" y="352">Long notes</text><text x="581.7" y="352" style="fill:#B26A08">Gap scenario*</text>
+      </g>
+      <g class="g" style="font-size:10.5px">
+        <text x="98.3" y="368">n=200</text><text x="195" y="368">n=24&#8594;36</text><text x="291.7" y="368">n=55</text>
+        <text x="388.3" y="368">n=47</text><text x="485" y="368">n=44</text><text x="581.7" y="368">n=15</text>
+      </g>
+      <text x="50" y="398" class="txt" style="font-size:11.5px">*Test data only: the 15 notes generated around the concept withheld from v001. Never gated.</text>
+      <text x="50" y="414" class="txt" style="font-size:11.5px">The Clinical dip is 2 of 55 encounters, inside the 0.10 margin. Access grows as relabeling moves encounters in.</text>
+      <text x="50" y="434" class="txt" style="font-size:11.5px;fill:#64748B">2026-10-09, 200 gold encounters. Haiku classifying, gpt-5.2 labeling gold.</text>
+    </svg>
+  </div>
+  <aside class="notes">This is the argument for per-segment evaluation. If you only looked at the aggregate, the revision is a 5.5-point improvement. The first four segment bars are things you'd see on your own data: under v001 there were 9 gold encounters the reference labeler couldn't place at all, and the Access category they belong to was the weakest one we gate on, at 0.75. After the revision the 9 have a home and Access is at 0.92. The orange bar is different, and I say so: it's test data. Every synthetic note was built from a scenario so the data isn't all easy, and these 15 are the ones we wrote around a concept we kept out of the taxonomy. They went from 0.2 to 1.0. An earlier run on a smaller taxonomy showed the same shape, plus 4 aggregate and plus 73 on that scenario, so it isn't a one-off. Be honest about the small dip: Clinical moved down 2 encounters out of 55, which is inside the margin, and the gate accounts for that.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== 12. COST ============================== -->
+<section class="slide" id="s-cost" data-sec="3">
+  <p class="kicker">3 &middot; Evaluation and operations &middot; cost monitoring</p>
+  <h2>Cost is measured per run, and taxonomy size is the lever</h2>
+  <div class="body" style="display:grid;grid-template-columns:1fr 400px;gap:40px">
+    <svg viewBox="0 0 640 440" role="img" aria-label="RUN_COST joins the run log to Cortex usage history; input tokens dominate output; credits scale with taxonomy size">
+      <text x="0" y="18" class="t start" style="font-size:16px">How it's measured</text>
+      <g transform="translate(0,32)" class="nd blue"><rect width="180" height="52" rx="10"/><text x="90" y="22" class="s" style="font-size:11px;font-weight:700">PIPELINE_RUN</text><text x="90" y="39" class="g">query_id captured per run</text></g>
+      <g transform="translate(220,32)" class="nd white"><rect width="222" height="52" rx="10"/><text x="111" y="22" class="s" style="font-size:10.5px;font-weight:700">CORTEX_AISQL_USAGE_HISTORY</text><text x="111" y="39" class="g">ACCOUNT_USAGE, lags minutes</text></g>
+      <g transform="translate(482,32)" class="nd green"><rect width="158" height="52" rx="10" style="stroke-width:2.5"/><text x="79" y="22" class="s" style="font-size:11px;font-weight:700;fill:#1C8F5F">RUN_COST</text><text x="79" y="39" class="g">view, one row per run</text></g>
+      <path class="e" d="M181,58 L219,58"/><path class="e green" d="M443,58 L481,58"/>
+      <text x="200" y="52" class="g" style="font-size:9.5px">join</text>
+      <text x="0" y="106" class="txt">Tokens in and out, credits, credits per 1K encounters, and duration, for every run.</text>
+
+      <text x="0" y="148" class="t start" style="font-size:16px">Where the tokens go, per call</text>
+      <rect x="0" y="162" width="619" height="44" rx="6" fill="#29B5E8"/>
+      <rect x="620" y="162" width="20" height="44" rx="3" fill="#E8890C"/>
+      <text x="20" y="189" class="t start" style="fill:#fff">input: rubric + enum + note text</text>
+      <path d="M630,210 V222 H560" stroke="#E8890C" fill="none" stroke-width="1.5"/>
+      <text x="554" y="226" class="txt" style="text-anchor:end;fill:#B26A08;font-weight:600">output</text>
+      <text x="0" y="248" class="txt">About <tspan style="font-weight:700">30 : 1</tspan> input to output. The rubric and the enum ride along on every call.</text>
+
+      <text x="0" y="292" class="t start" style="font-size:16px">Credits per 1,000 encounters</text>
+      <text x="0" y="320" class="txt" style="font-weight:600">55 subthemes</text><text x="0" y="335" class="txt" style="fill:#64748B">~12K rubric chars</text>
+      <rect x="170" y="304" width="290" height="34" rx="6" fill="#A9BCCF"/>
+      <text x="470" y="326" class="t start">3.67</text>
+      <text x="0" y="366" class="txt" style="font-weight:600">78 subthemes</text><text x="0" y="381" class="txt" style="fill:#64748B">21.6K rubric chars</text>
+      <rect x="170" y="350" width="427" height="34" rx="6" fill="#29B5E8"/>
+      <text x="607" y="372" class="t start">~5.4</text>
+      <text x="0" y="412" class="txt">Same model (claude-haiku-4-5), same pipeline. Only the taxonomy grew.</text>
+      <text x="0" y="432" class="txt">A larger production taxonomy will likely cost more per encounter for the same reason.</text>
+    </svg>
+    <div style="display:flex;flex-direction:column;gap:14px;justify-content:center">
+      <div class="cards" style="grid-template-columns:repeat(3,1fr);gap:10px">
+        <div class="card" style="padding:12px;text-align:center"><div class="stat-sm" style="font-size:32px;color:#11567F">8s</div><div class="muted small">5 encounters</div></div>
+        <div class="card" style="padding:12px;text-align:center"><div class="stat-sm" style="font-size:32px;color:#11567F">17s</div><div class="muted small">50 encounters</div></div>
+        <div class="card" style="padding:12px;text-align:center"><div class="stat-sm" style="font-size:32px;color:#11567F">&lt;33s</div><div class="muted small">200 encounters</div></div>
+      </div>
+      <div class="card"><h3>No chunking to tune</h3><p>One set-based statement per batch. Cortex parallelizes internally, so there's no batch size or worker count to tune. The full 1,000 took ~52s in the September run.</p></div>
+      <div class="card blue"><h3>The rubric beats the model</h3><p>On a comparable task, writing the decision policy down was worth +45 to 49 accuracy points. Switching models at equal information was worth about 1. That's why a smaller model is the right default here.</p></div>
+    </div>
+  </div>
+  <aside class="notes">Cost monitoring is a view. Every classification run writes a PIPELINE_RUN row carrying its query id, because a procedure can't set its own query tag, and RUN_COST joins that to CORTEX_AISQL_USAGE_HISTORY. That's real, measured consumption per run, including output tokens. AI_COUNT_TOKENS returned NULL for every model we tried in this account, so usage history is the better source anyway. The interesting part: input dominates about 30 to 1, because the rubric and enum go out on every call. So taxonomy size is the cost lever, not model choice. When the taxonomy regenerated from 55 to 78 subthemes, cost went from 3.67 to about 5.4 credits per thousand. Nothing regressed, it just got richer.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== 13. APP ============================== -->
+<section class="slide" id="s-app">
+  <p class="kicker">Demo app</p>
+  <h2>A thin UI over governed objects</h2>
+  <p class="lede">Six pages in the order the work happens, each naming the SQL objects it reads. All behavior lives in Snowflake. The only write path is an allowlist of the same procedures you'd call by hand, so the app can't skip the gate.</p>
+  <div class="body">
+    <svg viewBox="0 0 1136 400" role="img" aria-label="Browser pages call read routes and an allowlisted action endpoint, which reach Snowflake views and procedures">
+      <!-- Browser -->
+      <rect x="0" y="10" width="300" height="370" rx="12" fill="#fff" stroke="#B9C6D4" stroke-width="1.5"/>
+      <rect x="0" y="10" width="300" height="30" rx="12" fill="#F4F6F9"/><rect x="0" y="28" width="300" height="12" fill="#F4F6F9"/>
+      <circle cx="18" cy="25" r="5" fill="#E9A3A3"/><circle cx="34" cy="25" r="5" fill="#F6D3A3"/><circle cx="50" cy="25" r="5" fill="#BFE3D0"/>
+      <text x="150" y="29" class="g">Next.js app</text>
+      <g transform="translate(16,54)">
+        <rect width="268" height="42" rx="8" fill="#F7F9FC" stroke="#D8E1EA"/><text x="16" y="26" class="txt" style="font-weight:600">1  Explore Data</text>
+        <rect y="52" width="268" height="42" rx="8" fill="#FFF4E5" stroke="#F6D3A3"/><text x="16" y="78" class="txt" style="font-weight:600">2  Taxonomy</text><text x="256" y="78" class="g" style="text-anchor:end">fork, edit, lock</text>
+        <rect y="104" width="268" height="42" rx="8" fill="#FFF4E5" stroke="#F6D3A3"/><text x="16" y="130" class="txt" style="font-weight:600">3  Prompts &amp; Configs</text><text x="256" y="130" class="g" style="text-anchor:end">register</text>
+        <rect y="156" width="268" height="42" rx="8" fill="#E7F6EF" stroke="#BFE3D0"/><text x="16" y="182" class="txt" style="font-weight:600">4  Evaluate &amp; Promote</text><text x="256" y="182" class="g" style="text-anchor:end">the gate</text>
+        <rect y="208" width="268" height="42" rx="8" fill="#F7F9FC" stroke="#D8E1EA"/><text x="16" y="234" class="txt" style="font-weight:600">5  Run Production</text><text x="256" y="234" class="g" style="text-anchor:end">champion only</text>
+        <rect y="260" width="268" height="42" rx="8" fill="#F7F9FC" stroke="#D8E1EA"/><text x="16" y="286" class="txt" style="font-weight:600">6  Monitor &amp; Revise</text><text x="256" y="286" class="g" style="text-anchor:end">drift, gaps</text>
+      </g>
+
+      <!-- API layer -->
+      <rect x="380" y="10" width="330" height="370" rx="12" fill="none" stroke="#94A3B8" stroke-dasharray="6 4"/>
+      <text x="398" y="34" class="lbl">API ROUTES</text>
+      <g transform="translate(400,56)" class="nd blue"><rect width="290" height="120" rx="10"/>
+        <text x="145" y="28" class="t">Reads</text><text x="145" y="48" class="s">GET /api/{corpus,taxonomy,runs,eval,...}</text>
+        <text x="145" y="74" class="g">named queries only, every statement</text><text x="145" y="89" class="g">lives in lib/queries.ts</text></g>
+      <g transform="translate(400,200)" class="nd orange"><rect width="290" height="160" rx="10"/>
+        <text x="145" y="28" class="t">Writes</text><text x="145" y="48" class="s">POST /api/action</text>
+        <text x="145" y="68" class="g">procedure allowlist, nothing else</text></g>
+      <g transform="translate(420,280)"><rect width="250" height="28" rx="14" fill="#FCECEC" stroke="#F0C8C8"/><text x="125" y="19" class="g" style="fill:#C73E3E;font-weight:600">unknown procedure &#8594; 400</text></g>
+      <g transform="translate(420,316)"><rect width="250" height="28" rx="14" fill="#F4F6F9" stroke="#D8E1EA"/><text x="125" y="19" class="g" style="font-weight:600">guardrail fired &#8594; 409, shown as info</text></g>
+
+      <!-- Snowflake -->
+      <rect x="790" y="10" width="346" height="370" rx="12" fill="#F5FBFE" stroke="#29B5E8" stroke-width="1.5"/>
+      <text x="808" y="34" class="lbl" style="fill:#11567F">SNOWFLAKE &#183; ONE SCHEMA</text>
+      <text x="810" y="70" class="t start">Views</text>
+      <g class="s" style="text-anchor:start;font-size:11px">
+        <text x="810" y="92">EVAL_SCORECARD</text><text x="810" y="110">EVAL_GATE</text><text x="810" y="128">TAXONOMY_RENDERED</text><text x="810" y="146">APP_RUN_STATUS</text><text x="810" y="164">PROMOTION_LOG</text>
+      </g>
+      <text x="810" y="222" class="t start">Procedures</text>
+      <g class="s" style="text-anchor:start;font-size:11px">
+        <text x="810" y="244">EDIT_TAXONOMY_NODE()</text><text x="810" y="262">REGISTER_CONFIG()</text><text x="810" y="280">EVALUATE_CONFIG()</text><text x="810" y="298">PROMOTE_CONFIG()</text><text x="810" y="316">RUN_CLASSIFIER()</text>
+      </g>
+      <text x="810" y="352" class="g start">plus the rest of the pipeline objects</text>
+
+      <path class="e blue" d="M301,116 L399,116"/><path class="e orange" d="M301,280 L399,280"/>
+      <path class="e blue" d="M691,116 L789,116"/><path class="e orange" d="M691,250 L789,250"/>
+    </svg>
+    <p class="callout" style="margin-top:6px">No INSERT, UPDATE or DELETE anywhere in the app. Runs locally against your Snowflake account; it's scaffolded from the Snowflake App Runtime template, so it can deploy as an APPLICATION SERVICE without a rewrite. Not deployed yet.</p>
+  </div>
+  <aside class="notes">The pitch here is "a thin UI over governed Snowflake objects", so the app deliberately shows its sources on every page. The pages follow the lifecycle: author a taxonomy, author a prompt, evaluate and promote, run production, then monitor and revise, which loops back to page 2. Two rules the code enforces: no SQL in components, and all writes go through one endpoint that only calls allowlisted procedures. So the app can't promote without the gate, can't run a candidate in production, and an override reason it collects lands in the same PROMOTION_LOG a SQL user would write to. When a guardrail fires, like locking a draft with a blank label or scoring a partial run, the app shows it as information instead of crashing. If we deploy it, we'd want caller's rights on the read paths so it respects each user's grants.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== 14. DEMO VS PROD ============================== -->
+<section class="slide" id="s-next">
+  <p class="kicker">Honest scope</p>
+  <h2>What this proves, and what's left before production</h2>
+  <div class="body" style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+    <div class="card green" style="padding:22px 24px">
+      <h3 style="font-size:19px;margin-bottom:14px">Proven in this build</h3>
+      <svg viewBox="0 0 500 300" role="img" aria-label="List of proven capabilities">
+        <g class="txt" style="font-size:15px">
+          <g transform="translate(0,0)"><circle cx="11" cy="11" r="11" fill="#1C8F5F"/><path d="M6,11 L10,15 L17,7" stroke="#fff" stroke-width="2.2" fill="none"/><text x="34" y="16">0 out-of-taxonomy labels, by construction</text></g>
+          <g transform="translate(0,44)"><circle cx="11" cy="11" r="11" fill="#1C8F5F"/><path d="M6,11 L10,15 L17,7" stroke="#fff" stroke-width="2.2" fill="none"/><text x="34" y="16">Incremental, scheduled, version-stamped pipeline</text></g>
+          <g transform="translate(0,88)"><circle cx="11" cy="11" r="11" fill="#1C8F5F"/><path d="M6,11 L10,15 L17,7" stroke="#fff" stroke-width="2.2" fill="none"/><text x="34" y="16">Per-segment eval with a regression gate</text></g>
+          <g transform="translate(0,132)"><circle cx="11" cy="11" r="11" fill="#1C8F5F"/><path d="M6,11 L10,15 L17,7" stroke="#fff" stroke-width="2.2" fill="none"/><text x="34" y="16">Gap detection that named a missing concept</text></g>
+          <g transform="translate(0,176)"><circle cx="11" cy="11" r="11" fill="#1C8F5F"/><path d="M6,11 L10,15 L17,7" stroke="#fff" stroke-width="2.2" fill="none"/><text x="34" y="16">Measured cost per run, keyed on query_id</text></g>
+          <g transform="translate(0,220)"><circle cx="11" cy="11" r="11" fill="#1C8F5F"/><path d="M6,11 L10,15 L17,7" stroke="#fff" stroke-width="2.2" fill="none"/><text x="34" y="16">Register, evaluate, promote, with an audit log</text></g>
+        </g>
+      </svg>
+    </div>
+    <div class="card orange" style="padding:22px 24px">
+      <h3 style="font-size:19px;margin-bottom:14px">Before production</h3>
+      <svg viewBox="0 0 500 300" role="img" aria-label="List of remaining work">
+        <g class="txt" style="font-size:15px">
+          <g transform="translate(0,0)"><circle cx="11" cy="11" r="10" fill="none" stroke="#E8890C" stroke-width="2"/><text x="34" y="16">SME-verified gold (HUMAN_VERIFIED is false today)</text></g>
+          <g transform="translate(0,44)"><circle cx="11" cy="11" r="10" fill="none" stroke="#E8890C" stroke-width="2"/><text x="34" y="16">Real notes: AI_REDACT and masking policies</text></g>
+          <g transform="translate(0,88)"><circle cx="11" cy="11" r="10" fill="none" stroke="#E8890C" stroke-width="2"/><text x="34" y="16">Full-size taxonomy (~176 subthemes), re-costed</text></g>
+          <g transform="translate(0,132)"><circle cx="11" cy="11" r="10" fill="none" stroke="#E8890C" stroke-width="2"/><text x="34" y="16">Other service lines (service_line already carried)</text></g>
+          <g transform="translate(0,176)"><circle cx="11" cy="11" r="10" fill="none" stroke="#E8890C" stroke-width="2"/><text x="34" y="16">Explicit retry for the few errored calls</text></g>
+          <g transform="translate(0,220)"><circle cx="11" cy="11" r="10" fill="none" stroke="#E8890C" stroke-width="2"/><text x="34" y="16">Wire the alert to a notification integration</text></g>
+          <g transform="translate(0,264)"><circle cx="11" cy="11" r="10" fill="none" stroke="#E8890C" stroke-width="2"/><text x="34" y="16">Deploy the app, caller's rights on reads</text></g>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <p class="callout">The notes are synthetic, generated from a seeded spec, with no PHI. Cortex runs in-account with no egress, but no governance objects are created in this build.</p>
+  <aside class="notes">Close on scope so nobody walks away overclaiming. Everything on the left is measured. On the right, the big one is the gold set: today it's model-labeled, and a nurse SME pass is what makes the eval numbers trustworthy. Next, real notes need redaction and masking, and a full-size taxonomy will raise per-encounter cost because the rubric gets longer. Good next step: pick one service line and a few hundred real notes and run exactly this loop.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+</div>
+
+<div class="notes-panel" id="notesPanel"><h4>Speaker notes</h4><div id="notesBody"></div></div>
+<div class="progress" id="progress"></div>
+<div class="controls">
+  <button id="btnNotes" title="Toggle speaker notes (N)">Notes</button>
+  <button id="btnPrev" title="Previous (Left arrow)">&#8592;</button>
+  <span id="counter">1 / 1</span>
+  <button id="btnNext" title="Next (Right arrow)">&#8594;</button>
+</div>
+
+<script>
+(function () {
+  var stage = document.getElementById('stage');
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var counter = document.getElementById('counter');
+  var progress = document.getElementById('progress');
+  var notesPanel = document.getElementById('notesPanel');
+  var notesBody = document.getElementById('notesBody');
+  var idx = 0;
+
+  slides.forEach(function (s, i) {
+    var n = s.querySelector('.foot .num');
+    if (n) n.textContent = (i + 1) + ' / ' + slides.length;
+  });
+
+  // Footer section tracker on every content slide that belongs to a section
+  var SECS = ['Classification', 'Taxonomy governance', 'Evaluation and operations'];
+  slides.forEach(function (s) {
+    var sec = parseInt(s.getAttribute('data-sec'), 10);
+    var foot = s.querySelector('.foot');
+    if (!sec || !foot || s.classList.contains('divider')) return;
+    var trk = document.createElement('span');
+    trk.className = 'trk';
+    SECS.forEach(function (name, i) {
+      var b = document.createElement('b');
+      b.textContent = (i + 1) + ' ' + name;
+      if (i + 1 === sec) b.className = 'on';
+      trk.appendChild(b);
+    });
+    foot.insertBefore(trk, foot.lastElementChild);
+  });
+
+  function fit() {
+    var s = Math.min(window.innerWidth / 1280, (window.innerHeight - 8) / 720);
+    stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
+  }
+
+  function show(i) {
+    idx = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach(function (s, j) { s.classList.toggle('active', j === idx); });
+    counter.textContent = (idx + 1) + ' / ' + slides.length;
+    progress.style.width = ((idx + 1) / slides.length * 100) + '%';
+    var note = slides[idx].querySelector('aside.notes');
+    notesBody.textContent = note ? note.textContent : '';
+    try { history.replaceState(null, '', '#' + (idx + 1)); } catch (e) { /* sandboxed: ignore */ }
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); show(idx + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(idx - 1); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+    else if (e.key === 'n' || e.key === 'N') notesPanel.classList.toggle('show');
+    else if ((e.key === 'f' || e.key === 'F') && document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(function () {});
+    }
+  });
+  document.getElementById('btnNext').addEventListener('click', function () { show(idx + 1); });
+  document.getElementById('btnPrev').addEventListener('click', function () { show(idx - 1); });
+  document.getElementById('btnNotes').addEventListener('click', function () { notesPanel.classList.toggle('show'); });
+
+  var tx = null;
+  document.addEventListener('touchstart', function (e) { tx = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (tx === null) return;
+    var dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 50) show(idx + (dx < 0 ? 1 : -1));
+    tx = null;
+  });
+
+  window.addEventListener('resize', fit);
+  fit();
+  var start = parseInt((location.hash || '').replace('#', ''), 10);
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>
