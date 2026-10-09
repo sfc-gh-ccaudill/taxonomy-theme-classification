@@ -23,11 +23,12 @@
     { "id": "s-sec1", "title": "Section 1: Classification" },
     { "id": "s-idea", "title": "The central idea: every label is a valid subtheme", "dataSources": [{ "type": "file", "path": "docs/architecture.md" }, { "type": "file", "path": "sql/02_taxonomy.sql" }] },
     { "id": "s-leaf", "title": "Leaf only, derive the rest, escape hatch" },
-    { "id": "s-task", "title": "Why a task, not a dynamic table" },
     { "id": "s-sec2", "title": "Section 2: Taxonomy governance" },
     { "id": "s-v1", "title": "An LLM drafts v1", "dataSources": [{ "type": "file", "path": "sql/02_taxonomy.sql" }, { "type": "table", "name": "PAN_DEMO_DB.PIPELINE.TAXONOMY_VERSION" }],
       "producerNotes": "v001: openai-gpt-5.2, 163-note design sample, 8 categories / 23 themes / 78 subthemes (queried 2026-10-09)." },
-    { "id": "s-taxonomy", "title": "A version registry for the taxonomy", "dataSources": [{ "type": "file", "path": "sql/02_taxonomy.sql" }] },
+    { "id": "s-storage", "title": "How a taxonomy version is stored", "dataSources": [{ "type": "file", "path": "sql/02_taxonomy.sql" }, { "type": "file", "path": "sql/00_setup.sql" }, { "type": "table", "name": "PAN_DEMO_DB.PIPELINE.TAXONOMY_VERSION" }, { "type": "table", "name": "PAN_DEMO_DB.PIPELINE.TAXONOMY_NODE" }],
+      "producerNotes": "Sample rows: SELECT version_id, category, theme, subtheme FROM PAN_DEMO_DB.PIPELINE.TAXONOMY_NODE WHERE theme = 'Gastrointestinal Symptoms' (queried 2026-10-09). v001 APPROVED, 78 subthemes; v002 DRAFT fork of v001 with identical rows." },
+    { "id": "s-taxonomy", "title": "The lifecycle of a taxonomy version", "dataSources": [{ "type": "file", "path": "sql/02_taxonomy.sql" }] },
     { "id": "s-gaps", "title": "Gaps as revision signal", "dataSources": [{ "type": "file", "path": "sql/05_revision_loop.sql" }, { "type": "file", "path": "webapp/README.md" }] },
     { "id": "s-loop", "title": "The revision loop", "dataSources": [{ "type": "file", "path": "sql/05_revision_loop.sql" }] },
     { "id": "s-sec3", "title": "Section 3: Evaluation and operations" },
@@ -40,7 +41,8 @@
       "producerNotes": "Numbers are the 2026-10-09 run on PAN_DEMO_DB.PIPELINE, 200 gold encounters. Segment bars from EVAL_SEGMENT_DETAIL; the Gap scenario bar is test data from PAN_DEMO_DB.SYNTHETIC_DATA.TEST_SCENARIO_SCORECARD. Bar geometry: y = 330 - v*300. Re-running moves them." },
     { "id": "s-cost", "title": "Cost monitoring", "dataSources": [{ "type": "file", "path": "docs/results.md" }, { "type": "file", "path": "sql/04_evaluation.sql" }] },
     { "id": "s-app", "title": "The app", "dataSources": [{ "type": "file", "path": "webapp/README.md" }, { "type": "file", "path": "webapp/lib/queries.ts" }] },
-    { "id": "s-next", "title": "Demo vs production" }
+    { "id": "s-next", "title": "Demo vs production" },
+    { "id": "s-task", "title": "Appendix: why a task, not a dynamic table" }
   ]
 }
 </script>
@@ -144,6 +146,11 @@
 
   /* Code */
   pre.code { font-family: var(--mono); font-size: 12px; line-height: 1.5; background: #F7F9FC; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin: 0; color: var(--ink2); white-space: pre; overflow: hidden; }
+  table.rows { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.rows th { text-align: left; font: 700 10px -apple-system, system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 3px 8px; border-bottom: 1px solid var(--line); }
+  table.rows td { padding: 4px 8px; border-bottom: 1px solid #EEF2F6; color: var(--ink2); white-space: nowrap; }
+  table.rows td:first-child { font-family: var(--mono); color: var(--navy); }
+  table.rows tr.fork td { background: var(--purple-50); }
   pre.code b { color: var(--purple); font-weight: 600; }
   pre.code i { color: var(--muted); font-style: normal; }
   pre.code em { color: var(--orange); font-style: normal; font-weight: 600; }
@@ -480,7 +487,6 @@
       <ul class="toc">
         <li><b>Make a wrong label impossible</b>The subtheme list is the response_format enum</li>
         <li><b>Ask for the leaf, derive the rest</b>And give the model an honest way out</li>
-        <li><b>Why the LLM step is a task</b>Where the pipeline splits, and who decides to spend</li>
       </ul>
     </div>
   </div>
@@ -489,7 +495,7 @@
     <rect x="383" y="4" width="370" height="36" rx="18" fill="#fff" stroke="#D8E1EA"/><text x="568" y="27" class="t" style="fill:#94A3B8">2 &#183; Taxonomy governance</text>
     <rect x="766" y="4" width="370" height="36" rx="18" fill="#fff" stroke="#D8E1EA"/><text x="951" y="27" class="t" style="fill:#94A3B8">3 &#183; Evaluation and operations</text>
   </svg>
-  <aside class="notes">Section one is the run path: a note comes in, and a validated, version-stamped label comes out. Three ideas: the enum, leaf-only prediction with a deliberate escape hatch, and the decision to split the pipeline at the stream.</aside>
+  <aside class="notes">Section one is the run path: a note comes in, and a validated, version-stamped label comes out. Two ideas: the enum, and leaf-only prediction with a deliberate escape hatch.</aside>
   <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
 </section>
 
@@ -587,42 +593,6 @@ response_format =&gt; {
   <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
 </section>
 
-<!-- ============================== 7. TASK NOT DT ============================== -->
-<section class="slide" id="s-task" data-sec="1">
-  <p class="kicker">1 &middot; Classification &middot; design decision</p>
-  <h2>Why the LLM step is a task, not a dynamic table</h2>
-  <p class="lede">Every label is stamped with the config (prompt + model + taxonomy) that produced it. Where you split the pipeline decides who chooses to spend money on re-classification.</p>
-  <div class="body">
-    <svg viewBox="0 0 1136 380" role="img" aria-label="Comparison: dynamic table re-bills silently versus stream split makes re-classification an explicit decision">
-      <!-- Left panel -->
-      <rect x="0" y="0" width="548" height="380" rx="14" fill="#FDF6F6" stroke="#F0C8C8"/>
-      <text x="22" y="30" class="lbl" style="fill:#C73E3E">IF CLASSIFICATION WERE A DYNAMIC TABLE</text>
-      <g transform="translate(94,52)" class="nd blue"><rect width="360" height="54" rx="10"/><text x="180" y="23" class="t">Classification as a dynamic table</text><text x="180" y="41" class="s">... JOIN ACTIVE_CONFIG</text></g>
-      <g transform="translate(94,134)" class="nd orange"><rect width="360" height="54" rx="10"/><text x="180" y="23" class="t">Someone promotes a new config</text><text x="180" y="41" class="g">a governance decision</text></g>
-      <g transform="translate(94,216)" class="nd red"><rect width="360" height="54" rx="10"/><text x="180" y="23" class="t">Every row is invalidated</text><text x="180" y="41" class="g">a join input changed</text></g>
-      <g transform="translate(94,298)" class="nd red"><rect width="360" height="54" rx="10" style="stroke-width:2.5"/><text x="180" y="23" class="t">Full re-classification gets billed</text><text x="180" y="41" class="g">and nobody chose to spend it</text></g>
-      <path class="e" d="M274,107 V133"/><path class="e red" d="M274,189 V215"/><path class="e red" d="M274,271 V297"/>
-
-      <!-- Right panel -->
-      <rect x="588" y="0" width="548" height="380" rx="14" fill="#F4FBF7" stroke="#BFE3D0"/>
-      <text x="610" y="30" class="lbl" style="fill:#1C8F5F">SPLIT AT THE STREAM (THIS PIPELINE)</text>
-      <g transform="translate(608,44)" class="nd blue"><rect width="112" height="46" rx="8"/><text x="56" y="20" class="t" style="font-size:12.5px">Rollup DT</text><text x="56" y="35" class="s" style="font-size:9px">ENCOUNTER_PREP</text></g>
-      <g transform="translate(736,44)" class="nd blue"><rect width="112" height="46" rx="8"/><text x="56" y="20" class="t" style="font-size:12.5px">Stream</text><text x="56" y="35" class="s" style="font-size:9px">new rows only</text></g>
-      <g transform="translate(864,44)" class="nd blue"><rect width="112" height="46" rx="8"/><text x="56" y="20" class="t" style="font-size:12.5px">Task</text><text x="56" y="35" class="s" style="font-size:9px">STREAM mode</text></g>
-      <g transform="translate(992,44)" class="nd purple"><rect width="124" height="46" rx="8"/><text x="62" y="20" class="t" style="font-size:12.5px">Classify</text><text x="62" y="35" class="s" style="font-size:9px">the champion</text></g>
-      <path class="e" d="M721,67 L735,67"/><path class="e" d="M849,67 L863,67"/><path class="e" d="M977,67 L991,67"/>
-      <line x1="608" y1="112" x2="1116" y2="112" stroke="#BFE3D0" stroke-dasharray="4 4"/>
-      <g transform="translate(682,134)" class="nd orange"><rect width="360" height="54" rx="10"/><text x="180" y="23" class="t">Someone promotes a new config</text><text x="180" y="41" class="g">same governance decision</text></g>
-      <g transform="translate(682,216)" class="nd blue"><rect width="360" height="54" rx="10"/><text x="180" y="23" class="t">Backlog grows on its own</text><text x="180" y="41" class="g">backlog = no production label from the champion</text></g>
-      <g transform="translate(682,298)" class="nd green"><rect width="360" height="54" rx="10" style="stroke-width:2.5"/><text x="180" y="23" class="t">You decide when to spend</text><text x="180" y="41" class="s">CALL CLASSIFY_BATCH('BACKLOG')</text></g>
-      <path class="e" d="M862,189 V215"/><path class="e green" d="M862,271 V297"/>
-    </svg>
-    <p class="callout" style="margin-top:10px">The deterministic rollup still gets the full declarative treatment. Only the step that costs money per row is split out. Triggered tasks don't fire on dynamic-table streams, so the task is scheduled every minute and gated by <span class="mono">WHEN SYSTEM$STREAM_HAS_DATA</span>.</p>
-  </div>
-  <aside class="notes">This is the one architectural call I'd defend hardest. It's tempting to make the whole thing dynamic tables. But if classification is a DT joined to the champion config, promoting a new one silently re-bills everything. Splitting at the stream turns that into an explicit, costed decision. And because backlog is defined as "no production label from the champion", a promotion automatically means the whole corpus is due, with no special code path. Until you run it, the business keeps seeing the previous labels.</aside>
-  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
-</section>
-
 <!-- ============================== SECTION 2 DIVIDER ============================== -->
 <section class="slide divider" id="s-sec2" data-sec="2">
   <div class="div-grid">
@@ -635,7 +605,8 @@ response_format =&gt; {
       <p class="toc-h">In this section</p>
       <ul class="toc">
         <li><b>An LLM drafts v1</b>From a design sample, in one structured call</li>
-        <li><b>A version registry</b>DRAFT, LOCKED, APPROVED, SUPERSEDED: edited by hand, shipped only by promotion</li>
+        <li><b>How a version is stored</b>Two tables, two views, and a version_id on everything downstream</li>
+        <li><b>The version lifecycle</b>DRAFT, LOCKED, APPROVED, SUPERSEDED: edited by hand, shipped only by promotion</li>
         <li><b>Gaps become the signal</b>What classification couldn't place drives the next draft</li>
         <li><b>The revision loop</b>Every step, end to end, as a SQL object</li>
       </ul>
@@ -646,7 +617,7 @@ response_format =&gt; {
     <rect x="383" y="4" width="370" height="36" rx="18" fill="#E8890C"/><text x="568" y="27" class="t" style="fill:#fff">2 &#183; Taxonomy governance</text>
     <rect x="766" y="4" width="370" height="36" rx="18" fill="#fff" stroke="#D8E1EA"/><text x="951" y="27" class="t" style="fill:#94A3B8">3 &#183; Evaluation and operations</text>
   </svg>
-  <aside class="notes">Section two is about the artifact the classifier depends on: the taxonomy. We'll cover how v1 gets generated, how versions are edited, locked and promoted, and how the gaps that production surfaces turn into the next version.</aside>
+  <aside class="notes">Section two is about the artifact the classifier depends on: the taxonomy. We'll cover how v1 gets generated, how a version is stored, how versions are edited, locked and promoted, and how the gaps that production surfaces turn into the next version.</aside>
   <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
 </section>
 
@@ -714,12 +685,103 @@ response_format =&gt; {
   <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
 </section>
 
+<!-- ============================== TAXONOMY STORAGE ============================== -->
+<section class="slide" id="s-storage" data-sec="2">
+  <p class="kicker">2 &middot; Taxonomy governance &middot; storage</p>
+  <h2>How a taxonomy version is stored</h2>
+  <p class="lede">Two tables hold every version. Two views turn a version into what the model sees. Everything downstream carries the <span class="mono">version_id</span> it was produced under.</p>
+  <div class="body">
+    <svg viewBox="0 0 1136 286" role="img" aria-label="Taxonomy storage: TAXONOMY_VERSION and TAXONOMY_NODE tables feed the TAXONOMY_RENDERED and TAXONOMY_ACTIVE views; configs, labels and gold labels reference a version_id">
+      <text x="0" y="12" class="lbl">TABLES (STORED)</text>
+      <text x="430" y="12" class="lbl">VIEWS (COMPUTED PER VERSION)</text>
+      <text x="790" y="12" class="lbl">KEYED ON TAXONOMY_VERSION_ID</text>
+
+      <!-- TAXONOMY_VERSION -->
+      <g transform="translate(0,26)">
+        <rect width="360" height="112" rx="10" fill="#fff" stroke="#11567F" stroke-width="1.5"/>
+        <rect width="360" height="30" rx="10" fill="#11567F"/><rect y="20" width="360" height="10" fill="#11567F"/>
+        <text x="14" y="20" class="s start" style="fill:#fff;font-size:12px;font-weight:700">TAXONOMY_VERSION</text>
+        <text x="346" y="20" class="g" style="fill:#DDEBF3;text-anchor:end">one row per version</text>
+        <text x="14" y="52" class="s start" style="font-size:11px">version_id <tspan style="fill:#E8890C;font-weight:700">PK</tspan></text>
+        <text x="14" y="70" class="s start" style="font-size:11px">status &#183; parent_version_id</text>
+        <text x="14" y="88" class="s start" style="font-size:11px">generated_by_model &#183; created_by</text>
+        <text x="14" y="106" class="s start" style="font-size:11px">locked_by &#183; reviewed_by &#183; review_notes</text>
+      </g>
+      <!-- 1 : N -->
+      <path class="e none" d="M180,139 V173"/>
+      <text x="188" y="152" class="g start">1</text><text x="188" y="170" class="g start">N</text>
+      <!-- TAXONOMY_NODE -->
+      <g transform="translate(0,174)">
+        <rect width="360" height="112" rx="10" fill="#fff" stroke="#11567F" stroke-width="1.5"/>
+        <rect width="360" height="30" rx="10" fill="#11567F"/><rect y="20" width="360" height="10" fill="#11567F"/>
+        <text x="14" y="20" class="s start" style="fill:#fff;font-size:12px;font-weight:700">TAXONOMY_NODE</text>
+        <text x="346" y="20" class="g" style="fill:#DDEBF3;text-anchor:end">one row per subtheme</text>
+        <text x="14" y="52" class="s start" style="font-size:11px">version_id + subtheme <tspan style="fill:#E8890C;font-weight:700">PK</tspan></text>
+        <text x="14" y="70" class="s start" style="font-size:11px">category &#183; theme <tspan class="g" style="font-size:10.5px">the hierarchy, as columns</tspan></text>
+        <text x="14" y="88" class="s start" style="font-size:11px">description &#183; routing_note</text>
+        <text x="14" y="106" class="g start">v001: 78 rows across 23 themes, 8 categories</text>
+      </g>
+
+      <!-- TAXONOMY_RENDERED -->
+      <g transform="translate(430,46)" class="nd blue">
+        <rect width="300" height="120" rx="10"/>
+        <text x="150" y="24" class="s" style="font-size:12px;font-weight:700">TAXONOMY_RENDERED</text>
+        <text x="150" y="40" class="g">any version, draft or approved</text>
+      </g>
+      <g transform="translate(446,96)"><rect width="268" height="26" rx="6" fill="#fff" stroke="#BFE6F6"/><text x="12" y="17" class="s start">taxonomy_text</text><text x="256" y="17" class="g" style="text-anchor:end">the prompt's rubric</text></g>
+      <g transform="translate(446,128)"><rect width="268" height="26" rx="6" fill="#fff" stroke="#BFE6F6"/><text x="12" y="17" class="s start">response_format</text><text x="256" y="17" class="g" style="text-anchor:end">the subtheme enum</text></g>
+      <!-- TAXONOMY_ACTIVE -->
+      <g transform="translate(430,210)" class="nd green">
+        <rect width="300" height="62" rx="10"/>
+        <text x="150" y="24" class="s" style="font-size:12px;font-weight:700">TAXONOMY_ACTIVE</text>
+        <text x="150" y="40" class="s">WHERE status = 'APPROVED'</text>
+        <text x="150" y="54" class="g">what production reads</text>
+      </g>
+      <path class="e" d="M361,82 C395,82 395,96 429,96"/>
+      <path class="e" d="M361,230 C395,230 395,136 429,136"/>
+      <path class="e" d="M580,167 V209"/>
+
+      <!-- consumers -->
+      <path class="e none dash" d="M762,59 V245"/>
+      <path class="e dash" d="M731,106 L761,106"/>
+      <g transform="translate(790,26)" class="nd white"><rect width="346" height="66" rx="10"/><text x="173" y="23" class="s" style="font-size:12px;font-weight:700">CLASSIFIER_CONFIG</text><text x="173" y="40" class="g">prompt + model + one taxonomy version</text><text x="173" y="55" class="g">the unit that gets evaluated and promoted</text></g>
+      <g transform="translate(790,112)" class="nd white"><rect width="346" height="66" rx="10"/><text x="173" y="23" class="s" style="font-size:12px;font-weight:700">CLASSIFICATION</text><text x="173" y="40" class="g">every label is stamped with its version</text><text x="173" y="55" class="g">theme and category come from that version's rows</text></g>
+      <g transform="translate(790,198)" class="nd white"><rect width="346" height="66" rx="10"/><text x="173" y="23" class="s" style="font-size:12px;font-weight:700">GOLD_LABEL</text><text x="173" y="40" class="g">one answer key per locked version</text><text x="173" y="55" class="g">labeled once, then fixed</text></g>
+      <path class="e dash" d="M762,59 L789,59"/><path class="e dash" d="M762,145 L789,145"/><path class="e dash" d="M762,231 L789,231"/>
+    </svg>
+    <div style="display:grid;grid-template-columns:1.45fr 1fr;gap:20px;margin-top:16px">
+      <div class="card" style="padding:12px 16px">
+        <h3 style="font-size:14px;margin-bottom:6px">TAXONOMY_NODE, a few real rows <span class="muted" style="font-weight:400">(v002 is a fork of v001)</span></h3>
+        <table class="rows">
+          <thead><tr><th>version_id</th><th>category</th><th>theme</th><th>subtheme</th></tr></thead>
+          <tbody>
+            <tr><td>v001</td><td>Clinical Symptoms And Red Flags</td><td>Gastrointestinal Symptoms</td><td>Nausea Without Vomiting</td></tr>
+            <tr><td>v001</td><td>Clinical Symptoms And Red Flags</td><td>Gastrointestinal Symptoms</td><td>Vomiting Episodes</td></tr>
+            <tr class="fork"><td>v002</td><td>Clinical Symptoms And Red Flags</td><td>Gastrointestinal Symptoms</td><td>Nausea Without Vomiting</td></tr>
+            <tr class="fork"><td>v002</td><td>Clinical Symptoms And Red Flags</td><td>Gastrointestinal Symptoms</td><td>Vomiting Episodes</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card blue" style="padding:12px 16px">
+        <h3 style="font-size:14px;margin-bottom:6px">A new version is new rows</h3>
+        <p style="font-size:13px;margin-bottom:8px">A locked version's rows never change. <span class="mono">FORK_TAXONOMY</span> copies them under a new id and sets <span class="mono">parent_version_id</span>, so comparing two versions is one query:</p>
+<pre class="code" style="font-size:11px;padding:8px 10px">SELECT category, theme, subtheme FROM TAXONOMY_NODE
+ WHERE version_id = <em>'v002'</em>
+<b>EXCEPT</b> ... WHERE version_id = <em>'v001'</em></pre>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">This is what a version physically is. Two tables: TAXONOMY_VERSION has one row per version with its status, its parent, and who generated, locked and reviewed it. TAXONOMY_NODE has one row per subtheme, with the theme and category carried as columns, so there's no tree to walk. The prompt text and the enum aren't stored anywhere: TAXONOMY_RENDERED computes both from the rows, for any version. That's why a draft can be evaluated with exactly the same machinery production uses. TAXONOMY_ACTIVE is the same view filtered to the approved version. Everything downstream carries a version_id: a config pins one, every label is stamped with the one it was produced under, and gold labels are per version. A fork is a copy of the rows with a new id and a parent pointer, so diffing two versions is plain SQL.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
 <!-- ============================== 8. TAXONOMY LIFECYCLE ============================== -->
 <section class="slide" id="s-taxonomy" data-sec="2">
-  <p class="kicker">2 &middot; Taxonomy governance &middot; versioning</p>
-  <h2>A version registry for the taxonomy</h2>
+  <p class="kicker">2 &middot; Taxonomy governance &middot; lifecycle</p>
+  <h2>The lifecycle of a taxonomy version</h2>
+  <p class="lede">Every step from first draft to production is a procedure call. A version can only be edited as a DRAFT, and only reaches production when a config bound to it is promoted past the eval gate.</p>
   <div class="body">
-    <svg viewBox="0 0 1136 300" role="img" aria-label="Taxonomy version lifecycle: draft, locked, evaluated through a config, approved by promotion, rejected, superseded">
+    <svg viewBox="0 0 1136 300" role="img" aria-label="Lifecycle of a taxonomy version: draft, locked, evaluated through a config, approved by promotion, rejected, superseded">
       <g transform="translate(0,110)" class="nd purple"><rect width="170" height="66" rx="10"/><text x="85" y="23" class="t">Author</text><text x="85" y="40" class="s">PROPOSE &#183; FORK</text><text x="85" y="56" class="g">LLM draft, or copy a version</text></g>
       <g transform="translate(206,110)" class="nd orange"><rect width="150" height="66" rx="33"/><text x="75" y="28" class="t" style="font-size:16px">DRAFT</text><text x="75" y="45" class="s" style="font-size:9px">EDIT_TAXONOMY_NODE()</text><text x="75" y="58" class="g" style="font-size:9.5px">editable, does nothing</text></g>
       <g transform="translate(392,110)" class="nd blue"><rect width="150" height="66" rx="33"/><text x="75" y="28" class="t" style="font-size:16px">LOCKED</text><text x="75" y="45" class="s" style="font-size:9px">LOCK_TAXONOMY()</text><text x="75" y="58" class="g" style="font-size:9.5px">frozen, can be evaluated</text></g>
@@ -735,9 +797,6 @@ response_format =&gt; {
       <!-- revision -->
       <g transform="translate(166,232)" class="nd purple"><rect width="230" height="60" rx="10"/><text x="115" y="22" class="t">Revise</text><text x="115" y="38" class="s">PROPOSE_TAXONOMY_REVISION()</text><text x="115" y="52" class="g">add-only, from gap encounters</text></g>
       <path class="e purple" d="M281,231 V177"/>
-      <text x="0" y="40" class="txt" style="font-weight:600">Every version is a row.</text>
-      <text x="0" y="60" class="txt">Every label points back to one.</text>
-      <text x="0" y="86" class="s start" style="font-size:10px">TAXONOMY_VERSION: status &#183; parent_version_id &#183; locked_by &#183; reviewed_by &#183; review_notes</text>
     </svg>
     <div class="cards" style="grid-template-columns:repeat(3,1fr);margin-top:14px">
       <div class="card blue"><h3>Only the champion's version ships</h3><p>APPROVED is set only by <span class="mono">PROMOTE_CONFIG</span>, past the eval gate. Drafts and locked candidates render too (<span class="mono">TAXONOMY_RENDERED</span>) so they can be scored, but never reach production output.</p></div>
@@ -745,7 +804,7 @@ response_format =&gt; {
       <div class="card"><h3>Gold labels are version-specific</h3><p>The first evaluation on a new version labels its gold set, and re-labeling is refused after that, so every eval of a version uses the same answer key.</p></div>
     </div>
   </div>
-  <aside class="notes">The taxonomy is a registry with states. A model drafts, or you fork an existing version, and a person edits it node by node. Locking freezes it: that's the point where it can be gold-labeled and evaluated, because an evaluation of something that can still change isn't evidence. It reaches production only when a config bound to it is promoted past the gate, on the next section's slides. Each row records who or what generated it, its parent, who locked it and who promoted it. The procedures enforce the rules: no edits after lock, no blank or duplicate labels, never two approved versions, and rejected drafts stay in the table as a record. Revisions come back in through the same DRAFT state.</aside>
+  <aside class="notes">This is the life of one version. It starts as a DRAFT, either drafted by a model or forked from an existing version, and a person edits it node by node. Locking freezes it: that's the point where it can be gold-labeled and evaluated, because an evaluation of something that can still change isn't evidence. It reaches production only when a config bound to it is promoted past the gate, which is covered in the next section. Promotion marks the previous approved version SUPERSEDED, and it stays available as a rollback target. A draft that doesn't make it can be rejected, and it stays in the table as a record. Revisions re-enter at the start, as a new DRAFT built from the gap encounters. The procedures enforce the rules at every step: no edits after lock, no blank or duplicate labels, and never two approved versions.</aside>
   <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
 </section>
 
@@ -1237,6 +1296,42 @@ response_format =&gt; {
   </div>
   <p class="callout">The notes are synthetic, generated from a seeded spec, with no PHI. Cortex runs in-account with no egress, but no governance objects are created in this build.</p>
   <aside class="notes">Close on scope so nobody walks away overclaiming. Everything on the left is measured. On the right, the big one is the gold set: today it's model-labeled, and a nurse SME pass is what makes the eval numbers trustworthy. Next, real notes need redaction and masking, and a full-size taxonomy will raise per-encounter cost because the rubric gets longer. Good next step: pick one service line and a few hundred real notes and run exactly this loop.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== APPENDIX: TASK NOT DT ============================== -->
+<section class="slide" id="s-task">
+  <p class="kicker">Appendix &middot; Design decision</p>
+  <h2>Why the LLM step is a task, not a dynamic table</h2>
+  <p class="lede">Every label is stamped with the config (prompt + model + taxonomy) that produced it. Where you split the pipeline decides who chooses to spend money on re-classification.</p>
+  <div class="body">
+    <svg viewBox="0 0 1136 380" role="img" aria-label="Comparison: dynamic table re-bills silently versus stream split makes re-classification an explicit decision">
+      <!-- Left panel -->
+      <rect x="0" y="0" width="548" height="380" rx="14" fill="#FDF6F6" stroke="#F0C8C8"/>
+      <text x="22" y="30" class="lbl" style="fill:#C73E3E">IF CLASSIFICATION WERE A DYNAMIC TABLE</text>
+      <g transform="translate(94,52)" class="nd blue"><rect width="360" height="54" rx="10"/><text x="180" y="23" class="t">Classification as a dynamic table</text><text x="180" y="41" class="s">... JOIN ACTIVE_CONFIG</text></g>
+      <g transform="translate(94,134)" class="nd orange"><rect width="360" height="54" rx="10"/><text x="180" y="23" class="t">Someone promotes a new config</text><text x="180" y="41" class="g">a governance decision</text></g>
+      <g transform="translate(94,216)" class="nd red"><rect width="360" height="54" rx="10"/><text x="180" y="23" class="t">Every row is invalidated</text><text x="180" y="41" class="g">a join input changed</text></g>
+      <g transform="translate(94,298)" class="nd red"><rect width="360" height="54" rx="10" style="stroke-width:2.5"/><text x="180" y="23" class="t">Full re-classification gets billed</text><text x="180" y="41" class="g">and nobody chose to spend it</text></g>
+      <path class="e" d="M274,107 V133"/><path class="e red" d="M274,189 V215"/><path class="e red" d="M274,271 V297"/>
+
+      <!-- Right panel -->
+      <rect x="588" y="0" width="548" height="380" rx="14" fill="#F4FBF7" stroke="#BFE3D0"/>
+      <text x="610" y="30" class="lbl" style="fill:#1C8F5F">SPLIT AT THE STREAM (THIS PIPELINE)</text>
+      <g transform="translate(608,44)" class="nd blue"><rect width="112" height="46" rx="8"/><text x="56" y="20" class="t" style="font-size:12.5px">Rollup DT</text><text x="56" y="35" class="s" style="font-size:9px">ENCOUNTER_PREP</text></g>
+      <g transform="translate(736,44)" class="nd blue"><rect width="112" height="46" rx="8"/><text x="56" y="20" class="t" style="font-size:12.5px">Stream</text><text x="56" y="35" class="s" style="font-size:9px">new rows only</text></g>
+      <g transform="translate(864,44)" class="nd blue"><rect width="112" height="46" rx="8"/><text x="56" y="20" class="t" style="font-size:12.5px">Task</text><text x="56" y="35" class="s" style="font-size:9px">STREAM mode</text></g>
+      <g transform="translate(992,44)" class="nd purple"><rect width="124" height="46" rx="8"/><text x="62" y="20" class="t" style="font-size:12.5px">Classify</text><text x="62" y="35" class="s" style="font-size:9px">the champion</text></g>
+      <path class="e" d="M721,67 L735,67"/><path class="e" d="M849,67 L863,67"/><path class="e" d="M977,67 L991,67"/>
+      <line x1="608" y1="112" x2="1116" y2="112" stroke="#BFE3D0" stroke-dasharray="4 4"/>
+      <g transform="translate(682,134)" class="nd orange"><rect width="360" height="54" rx="10"/><text x="180" y="23" class="t">Someone promotes a new config</text><text x="180" y="41" class="g">same governance decision</text></g>
+      <g transform="translate(682,216)" class="nd blue"><rect width="360" height="54" rx="10"/><text x="180" y="23" class="t">Backlog grows on its own</text><text x="180" y="41" class="g">backlog = no production label from the champion</text></g>
+      <g transform="translate(682,298)" class="nd green"><rect width="360" height="54" rx="10" style="stroke-width:2.5"/><text x="180" y="23" class="t">You decide when to spend</text><text x="180" y="41" class="s">CALL CLASSIFY_BATCH('BACKLOG')</text></g>
+      <path class="e" d="M862,189 V215"/><path class="e green" d="M862,271 V297"/>
+    </svg>
+    <p class="callout" style="margin-top:10px">The deterministic rollup still gets the full declarative treatment. Only the step that costs money per row is split out. Triggered tasks don't fire on dynamic-table streams, so the task is scheduled every minute and gated by <span class="mono">WHEN SYSTEM$STREAM_HAS_DATA</span>.</p>
+  </div>
+  <aside class="notes">Backup slide, in case the question comes up. It's tempting to make the whole thing dynamic tables. But if classification is a DT joined to the champion config, promoting a new one silently re-bills everything. Splitting at the stream turns that into an explicit, costed decision. And because backlog is defined as "no production label from the champion", a promotion automatically means the whole corpus is due, with no special code path. Until you run it, the business keeps seeing the previous labels.</aside>
   <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
 </section>
 
