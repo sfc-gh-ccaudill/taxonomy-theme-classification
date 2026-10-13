@@ -1210,7 +1210,7 @@ response_format =&gt; {
 <section class="slide" id="s-app">
   <p class="kicker">Demo app</p>
   <h2>A thin UI over governed objects</h2>
-  <p class="lede">Six pages in the order the work happens, each naming the SQL objects it reads. All behavior lives in Snowflake. The only write path is an allowlist of the same procedures you'd call by hand, so the app can't skip the gate.</p>
+  <p class="lede">Five pages in the order the work happens, each naming the SQL objects it reads. All behavior lives in Snowflake. The only write path is an allowlist of the same procedures you'd call by hand, so the app can't skip the gate.</p>
   <div class="body">
     <svg viewBox="0 0 1136 400" role="img" aria-label="Browser pages call read routes and an allowlisted action endpoint, which reach Snowflake views and procedures">
       <!-- Browser -->
@@ -1220,11 +1220,10 @@ response_format =&gt; {
       <text x="150" y="29" class="g">Next.js app</text>
       <g transform="translate(16,54)">
         <rect width="268" height="42" rx="8" fill="#F7F9FC" stroke="#D8E1EA"/><text x="16" y="26" class="txt" style="font-weight:600">1  Explore Data</text>
-        <rect y="52" width="268" height="42" rx="8" fill="#FFF4E5" stroke="#F6D3A3"/><text x="16" y="78" class="txt" style="font-weight:600">2  Taxonomy</text><text x="256" y="78" class="g" style="text-anchor:end">fork, edit, lock</text>
-        <rect y="104" width="268" height="42" rx="8" fill="#FFF4E5" stroke="#F6D3A3"/><text x="16" y="130" class="txt" style="font-weight:600">3  Prompts &amp; Configs</text><text x="256" y="130" class="g" style="text-anchor:end">register</text>
-        <rect y="156" width="268" height="42" rx="8" fill="#E7F6EF" stroke="#BFE3D0"/><text x="16" y="182" class="txt" style="font-weight:600">4  Evaluate &amp; Promote</text><text x="256" y="182" class="g" style="text-anchor:end">the gate</text>
-        <rect y="208" width="268" height="42" rx="8" fill="#F7F9FC" stroke="#D8E1EA"/><text x="16" y="234" class="txt" style="font-weight:600">5  Run Production</text><text x="256" y="234" class="g" style="text-anchor:end">champion only</text>
-        <rect y="260" width="268" height="42" rx="8" fill="#F7F9FC" stroke="#D8E1EA"/><text x="16" y="286" class="txt" style="font-weight:600">6  Monitor &amp; Revise</text><text x="256" y="286" class="g" style="text-anchor:end">drift, gaps</text>
+        <rect y="52" width="268" height="42" rx="8" fill="#FFF4E5" stroke="#F6D3A3"/><text x="16" y="78" class="txt" style="font-weight:600">2  Config Builder</text><text x="256" y="78" class="g" style="text-anchor:end">taxonomy, prompt, register</text>
+        <rect y="104" width="268" height="42" rx="8" fill="#E7F6EF" stroke="#BFE3D0"/><text x="16" y="130" class="txt" style="font-weight:600">3  Evaluate &amp; Promote</text><text x="256" y="130" class="g" style="text-anchor:end">the gate</text>
+        <rect y="156" width="268" height="42" rx="8" fill="#F7F9FC" stroke="#D8E1EA"/><text x="16" y="182" class="txt" style="font-weight:600">4  Run Production</text><text x="256" y="182" class="g" style="text-anchor:end">champion only</text>
+        <rect y="208" width="268" height="42" rx="8" fill="#F7F9FC" stroke="#D8E1EA"/><text x="16" y="234" class="txt" style="font-weight:600">5  Monitor &amp; Revise</text><text x="256" y="234" class="g" style="text-anchor:end">drift, gaps</text>
       </g>
 
       <!-- API layer -->
@@ -1257,7 +1256,7 @@ response_format =&gt; {
     </svg>
     <p class="callout" style="margin-top:6px">No INSERT, UPDATE or DELETE anywhere in the app. Runs locally against your Snowflake account; it's scaffolded from the Snowflake App Runtime template, so it can deploy as an APPLICATION SERVICE without a rewrite. Not deployed yet.</p>
   </div>
-  <aside class="notes">The pitch here is "a thin UI over governed Snowflake objects", so the app deliberately shows its sources on every page. The pages follow the lifecycle: author a taxonomy, author a prompt, evaluate and promote, run production, then monitor and revise, which loops back to page 2. Two rules the code enforces: no SQL in components, and all writes go through one endpoint that only calls allowlisted procedures. So the app can't promote without the gate, can't run a candidate in production, and an override reason it collects lands in the same PROMOTION_LOG a SQL user would write to. When a guardrail fires, like locking a draft with a blank label or scoring a partial run, the app shows it as information instead of crashing. If we deploy it, we'd want caller's rights on the read paths so it respects each user's grants.</aside>
+  <aside class="notes">The pitch here is "a thin UI over governed Snowflake objects", so the app deliberately shows its sources on every page. The pages follow the lifecycle: build a config, where you edit the taxonomy and prompt on one page, then evaluate and promote, run production, then monitor and revise, which loops back to page 2. Two rules the code enforces: no SQL in components, and all writes go through one endpoint that only calls allowlisted procedures. So the app can't promote without the gate, can't run a candidate in production, and an override reason it collects lands in the same PROMOTION_LOG a SQL user would write to. When a guardrail fires, like locking a draft with a blank label or scoring a partial run, the app shows it as information instead of crashing. If we deploy it, we'd want caller's rights on the read paths so it respects each user's grants.</aside>
   <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
 </section>
 

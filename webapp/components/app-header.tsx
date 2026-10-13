@@ -8,17 +8,16 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { cn } from "@/lib/utils"
 
 /**
- * The six pages, in workflow order: data -> author a taxonomy -> author a
- * prompt -> evaluate and promote -> run production -> monitor and revise,
+ * The five pages, in workflow order: data -> build a config (taxonomy +
+ * prompt) -> evaluate and promote -> run production -> monitor and revise,
  * which loops back to page 2.
  */
 const NAV = [
   { href: "/", label: "Explore Data", step: "1" },
-  { href: "/taxonomy", label: "Taxonomy", step: "2" },
-  { href: "/prompts", label: "Prompts & Configs", step: "3" },
-  { href: "/evaluate", label: "Evaluate & Promote", step: "4" },
-  { href: "/run", label: "Run Production", step: "5" },
-  { href: "/monitor", label: "Monitor & Revise", step: "6" },
+  { href: "/build", label: "Config Builder", step: "2" },
+  { href: "/evaluate", label: "Evaluate & Promote", step: "3" },
+  { href: "/run", label: "Run Production", step: "4" },
+  { href: "/monitor", label: "Monitor & Revise", step: "5" },
 ]
 
 export function AppHeader() {
@@ -35,7 +34,7 @@ export function AppHeader() {
             className="shrink-0"
           />
         )}
-        {/* Six pages need the width on laptop screens; the logo carries the brand. */}
+        {/* The nav needs the width on laptop screens; the logo carries the brand. */}
         <span className="hidden 2xl:inline text-sm font-semibold tracking-tight shrink-0">
           {APP_TITLE}
         </span>

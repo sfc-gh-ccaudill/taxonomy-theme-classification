@@ -5,7 +5,7 @@ BASE="${1:-http://localhost:3000}"
 LOG="${2:-}"
 
 echo "=== pages ==="
-for p in / /taxonomy /prompts /evaluate /run /monitor; do
+for p in / /build /evaluate /run /monitor; do
   code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 120 "$BASE$p")
   printf "  %-14s %s\n" "$p" "$code"
 done

@@ -196,10 +196,10 @@ export default function MonitorPage() {
               </div>
               {action.last?.ok && action.last.proc === "proposeTaxonomyRevision" && (
                 <Link
-                  href="/taxonomy"
+                  href="/build"
                   className="inline-flex items-center text-xs text-primary hover:underline"
                 >
-                  Review, edit and lock the draft on the Taxonomy page
+                  Review, edit and lock the draft in the Config Builder
                   <ArrowRight className="h-3 w-3 ml-0.5" />
                 </Link>
               )}
@@ -210,7 +210,7 @@ export default function MonitorPage() {
               ) : gapReview.length === 0 ? (
                 <p className="text-xs text-muted-foreground py-6 text-center">
                   No gap signals. Either the taxonomy covers production, or the
-                  champion has not classified anything yet (page 5).
+                  champion has not classified anything yet (page 4).
                 </p>
               ) : (
                 <div className="max-h-80 overflow-y-auto space-y-2">

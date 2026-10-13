@@ -1,15 +1,15 @@
 # PAN Lines Theme Pipeline: web app
 
-A six-page Next.js app over the Snowflake pipeline in `../sql`. It drives the real procedures and
+A five-page Next.js app over the Snowflake pipeline in `../sql`. It drives the real procedures and
 reads the real views: there is no mock data, and all behavior lives in Snowflake.
 
 **Start here:** `npm install && npm run dev`, then open http://localhost:3000.
 
 ---
 
-## The six pages
+## The five pages
 
-The pages follow the order the work happens: data, then author a taxonomy, author a prompt, evaluate and promote,
+The pages follow the order the work happens: data, then build a config (taxonomy and prompt), evaluate and promote,
 run production, then monitor and revise, which loops back to page 2. It is the register, evaluate,
 promote loop of an ML model registry, where the unit is a **config** (prompt + model + taxonomy
 version) and exactly one config, the **champion**, runs in production.
@@ -17,11 +17,10 @@ version) and exactly one config, the **champion**, runs in production.
 | # | Page | What it does | Backed by |
 |---|---|---|---|
 | 1 | Explore Data | Note browser, the encounter rollup, gold-set and design-sample membership, and (badged as test data) how the synthetic notes were made challenging | `NOTE_RAW`, `ENCOUNTER_PREP`, `GOLD_ENCOUNTER`, `DISCOVERY_SAMPLE` + test data `SYNTHETIC_DATA.TEST_SCENARIO` |
-| 2 | Taxonomy | Version registry with each version's configs, gold status and latest eval; propose from the sample, fork, a node editor for drafts (add, edit, rename, delete), lock, reject; per-version diff and enum contract | `TAXONOMY_VERSION`, `TAXONOMY_NODE`, `TAXONOMY_RENDERED`, `FORK_TAXONOMY()`, `EDIT_TAXONOMY_NODE()`, `LOCK_TAXONOMY()`, `TAXONOMY_DIFF()` |
-| 3 | Prompts & Configs | Config registry (champion, candidates, templates); fork any config with a new prompt, model and/or taxonomy and register it; preview a config on any taxonomy, drafts included, writing nothing | `CLASSIFIER_CONFIG`, `REGISTER_CONFIG()`, `PREVIEW_PROMPT()` |
-| 4 | Evaluate & Promote | Candidate leaderboard vs the champion; evaluate on gold (labels gold first for a new taxonomy); gate verdict and segment-by-segment comparison with the champion; promote, with a required reason if the gate failed; the promotion log | `EVALUATE_CONFIG()`, `EVAL_SCORECARD`, `EVAL_SEGMENT_DETAIL`, `EVAL_GATE`, `PROMOTE_CONFIG()`, `PROMOTION_LOG` |
-| 5 | Run Production | The champion and its backlog; bounded or full production runs, live progress, labels with evidence, out-of-taxonomy count, credits; score a full production run on gold | `RUN_CLASSIFIER()`, `PIPELINE_RUN`, `CLASSIFICATION`, `APP_RUN_STATUS`, `RUN_COST` |
-| 6 | Monitor & Revise | Champion drift (its eval vs its previous eval), the gap queue from production output, propose a revision (lands as a DRAFT on page 2), reclassify flagged encounters, every eval, and (badged as test data) accuracy per test scenario | `EVAL_SCORECARD`, `EVAL_GATE`, `TAXONOMY_GAP_REVIEW`, `PROPOSE_TAXONOMY_REVISION()` + test data `SYNTHETIC_DATA.TEST_SCENARIO_SCORECARD` |
+| 2 | Config Builder | The taxonomy is the workspace: version tabs (hover for lineage, bound configs and notes), propose a whole taxonomy from the sample, fork, a node editor for drafts (add, edit, rename, delete), lock, reject, changes vs the parent and the enum contract. Below it, a collapsed prompt and model section, then save the combination as a new config, preview it on 5 encounters (writing nothing) and hand it to evaluation | `TAXONOMY_VERSION`, `TAXONOMY_NODE`, `TAXONOMY_RENDERED`, `PROPOSE_TAXONOMY()`, `FORK_TAXONOMY()`, `EDIT_TAXONOMY_NODE()`, `LOCK_TAXONOMY()`, `REJECT_TAXONOMY()`, `TAXONOMY_DIFF()`, `CLASSIFIER_CONFIG`, `REGISTER_CONFIG()`, `PREVIEW_PROMPT()` |
+| 3 | Evaluate & Promote | Candidate leaderboard vs the champion; evaluate on gold (labels gold first for a new taxonomy); gate verdict and segment-by-segment comparison with the champion; promote, with a required reason if the gate failed; the promotion log | `EVALUATE_CONFIG()`, `EVAL_SCORECARD`, `EVAL_SEGMENT_DETAIL`, `EVAL_GATE`, `PROMOTE_CONFIG()`, `PROMOTION_LOG` |
+| 4 | Run Production | The champion and its backlog; bounded or full production runs, live progress, labels with evidence, out-of-taxonomy count, credits; score a full production run on gold | `RUN_CLASSIFIER()`, `PIPELINE_RUN`, `CLASSIFICATION`, `APP_RUN_STATUS`, `RUN_COST` |
+| 5 | Monitor & Revise | Champion drift (its eval vs its previous eval), the gap queue from production output, propose a revision (lands as a DRAFT on page 2), reclassify flagged encounters, every eval, and (badged as test data) accuracy per test scenario | `EVAL_SCORECARD`, `EVAL_GATE`, `TAXONOMY_GAP_REVIEW`, `PROPOSE_TAXONOMY_REVISION()` + test data `SYNTHETIC_DATA.TEST_SCENARIO_SCORECARD` |
 
 Every page names the SQL objects behind it, so it's easy to see what each panel reads and calls.
 
@@ -48,14 +47,14 @@ notes don't have those tags, so nothing in the pipeline reads them.
 ```
 webapp/
   app/page.tsx              1 Explore Data
-  app/taxonomy/page.tsx     2 Taxonomy (registry + node editor)
-  app/prompts/page.tsx      3 Prompts & Configs
-  app/evaluate/page.tsx     4 Evaluate & Promote
-  app/run/page.tsx          5 Run Production
-  app/monitor/page.tsx      6 Monitor & Revise
+  app/build/page.tsx        2 Config Builder (taxonomy workspace, prompt, save config)
+  app/build/_components/taxonomy-editor.tsx  the searchable category > theme > subtheme editor
+  app/evaluate/page.tsx     3 Evaluate & Promote
+  app/run/page.tsx          4 Run Production
+  app/monitor/page.tsx      5 Monitor & Revise
   app/api/action/route.ts    the only write endpoint (allowlisted)
   app/api/{corpus,notes,taxonomy,runs,classifications,eval,configs}/route.ts
-  components/eval-widgets.tsx  gate badge, segment comparison table (pages 4 and 6)
+  components/eval-widgets.tsx  gate badge, segment comparison table (pages 3 and 5)
   lib/queries.ts            every SQL statement + the procedure allowlist
   lib/data.ts               query execution, timestamp normalization, refusal detection
   lib/constants.ts          schema (pipeline + test data), warehouse, models, run presets, actor name
@@ -126,31 +125,31 @@ form lets you type a different name.
    Select it, **Evaluate on gold** (~30s, one gold run, ~1 credit). 0.830, PASS on absolute
    checks only, because there is nothing to compare against yet. Everything after this is gated
    against it.
-3. **Taxonomy: author a candidate.** v001 is APPROVED with 78 subthemes. **Show enum contract**:
-   the subtheme list is an `enum`, so an out-of-taxonomy label is impossible. Then **Fork to new
-   draft**. **Add subtheme** `Transportation Barrier To Care` under Access Social And Financial
-   Barriers > Home And Social Environment, then **Lock for evaluation**.
-4. **Prompts & Configs: register it.** Select `haiku_enum_v1`, pick the new version in the
-   taxonomy dropdown, name it (e.g. `haiku_v1_tax_v002`), **Register candidate**. Optionally
-   **Preview on 3 encounters** against the new version (writes nothing).
-5. **Evaluate & Promote: the payoff.** Select the candidate, **Evaluate on gold**. It labels gold
+3. **Config Builder: author a candidate.** v001 is APPROVED with 78 subthemes. **Show enum
+   contract**: the subtheme list is an `enum`, so an out-of-taxonomy label is impossible. Then
+   **Fork v001 to edit**. **Add subtheme** `Transportation Barrier To Care` under Access Social And
+   Financial Barriers > Home And Social Environment, then **Lock v002**. The save panel at the
+   bottom suggests a name (e.g. `haiku_v002_1`); **Save config**. Optionally **Try it on 5
+   encounters** (writes nothing), then **Continue to evaluation**.
+4. **Evaluate & Promote: the payoff.** Select the candidate, **Evaluate on gold**. It labels gold
    for the new version first (~2-3 min, ~200 gpt-5.2 calls), then scores: about 0.885 vs 0.830,
    PASS. In the segment table, Access goes 0.750 to ~0.889 and its n grows (the formerly
    unplaceable encounters moved into it); `NO_GOOD_MATCH` goes from 9 to ~1. Nothing in
    production changed. **Promote to production**.
-6. **Run Production.** The backlog is now all 1000: promotion resets it, by design.
+5. **Run Production.** The backlog is now all 1000: promotion resets it, by design.
    **Run 50** (~15s): zero out-of-taxonomy labels, measured credits. Select the run and **Score
    this run on gold**: refused, a 50-encounter run can't be scored without counting 150 gold
    encounters as wrong. Run all remaining if you want the full-corpus number (~55s, ~5 credits).
-7. **Evaluate & Promote: rollback.** Select `haiku_enum_v1` again. Its eval now FAILs against the
+6. **Evaluate & Promote: rollback.** Select `haiku_enum_v1` again. Its eval now FAILs against the
    new champion, naming the Access regression. The button wants a reason; type one and **Promote
    with override**. The promotion log shows both promotions and the override.
-8. **Monitor & Revise.** **Re-evaluate the champion** to show drift: it is gated against its own
+7. **Monitor & Revise.** **Re-evaluate the champion** to show drift: it is gated against its own
    previous eval. After a full production run the gap queue fills with `NO_GOOD_MATCH` / `LOW`
    encounters; **Propose revision** drafts the next version, which goes back to step 3.
 
-A prompt-only candidate is the quicker path: fork `haiku_enum_v1` on page 3 keeping v001, edit the
-rubric, register, evaluate. It reuses v001's gold labels, so it costs one gold run.
+A prompt-only candidate is the quicker path: in the Config Builder, start from `haiku_enum_v1` and
+stay on v001, open **Prompt and model**, edit the rubric, save, evaluate. It reuses v001's gold
+labels, so it costs one gold run.
 
 Version IDs are the next number after the highest existing version, so after
 `reset_webapp.sql` (which deletes everything after v001) the first fork is v002 again.

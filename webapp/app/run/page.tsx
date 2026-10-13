@@ -82,7 +82,7 @@ export default function RunPage() {
     <div>
       <PageHeader
         title="Run production classification"
-        description="Production always runs the champion config: the one promoted on page 4. Each run is one set-based AI_COMPLETE call over the whole batch; Cortex parallelises internally, so no client-side chunking is needed. Candidates never run here; their gold-set runs are evaluations and never become business output."
+        description="Production always runs the champion config: the one promoted on page 3. Each run is one set-based AI_COMPLETE call over the whole batch; Cortex parallelises internally, so no client-side chunking is needed. Candidates never run here; their gold-set runs are evaluations and never become business output."
         objects={SOURCES.run}
       />
 

@@ -53,6 +53,13 @@ export default function EvaluatePage() {
     invalidate: [["eval"], ["configs"], ["taxonomy"], ["runs"], ["production"]],
   })
 
+  // /evaluate?config=NAME (from the config builder) preselects that config.
+  // Read once on mount; useSearchParams would need a Suspense boundary.
+  useEffect(() => {
+    const c = new URLSearchParams(window.location.search).get("config")
+    if (c) setSelected(c)
+  }, [])
+
   useEffect(() => {
     if (!action.pending) {
       setElapsed(0)
@@ -255,7 +262,7 @@ export default function EvaluatePage() {
                     <span className="font-mono">{current.TAXONOMY_VERSION_ID}</span> (
                     {String(current.TAXONOMY_STATUS).toLowerCase()}).{" "}
                     {taxonomyDraft
-                      ? "Its taxonomy is still a DRAFT: lock it on the Taxonomy page before evaluating."
+                      ? "Its taxonomy is still a DRAFT: lock it in the Config Builder before evaluating."
                       : needsGold
                         ? `No gold labels for ${current.TAXONOMY_VERSION_ID} yet: the first evaluation labels them with ${LABELER_MODEL}, then scores.`
                         : `Gold labels for ${current.TAXONOMY_VERSION_ID} exist (${fmtInt(current.GOLD_LABELED)} encounters), so an evaluation is one gold classification run.`}
@@ -331,7 +338,7 @@ export default function EvaluatePage() {
                   <p className="text-xs text-muted-foreground">
                     Makes this config the champion and its taxonomy the approved
                     one, in one transaction. It does not re-classify anything:
-                    backfilling with the new champion is an explicit run on page 5.
+                    backfilling with the new champion is an explicit run on page 4.
                   </p>
                 </CardHeader>
                 <CardContent className="space-y-2.5">

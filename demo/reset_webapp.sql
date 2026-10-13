@@ -8,7 +8,7 @@
      reset_demo.sql       drops the taxonomy and gold labels too, so the SQL
                           runbook can regenerate them live in Act 1. That is
                           right for the SQL demo, but it leaves the app's
-                          Taxonomy page empty and costs a taxonomy-generation
+                          Config Builder empty and costs a taxonomy-generation
                           call plus ~200 gold-labeling calls to get back.
 
      reset_webapp.sql     keeps v001 APPROVED and its gold labels, and clears

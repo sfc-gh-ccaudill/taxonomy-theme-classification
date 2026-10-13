@@ -62,7 +62,7 @@ export const MODELS = [
 /**
  * Production run presets for the Run page. Always the champion config; limit
  * 0 means unbounded. Gold-set runs are not here: scoring is an evaluation
- * (page 4), and evaluation runs never become production output.
+ * (page 3), and evaluation runs never become production output.
  */
 export const RUN_PRESETS = [
   {

@@ -77,7 +77,7 @@ CALL CLASSIFY_BATCH('BACKLOG');
 
 **3. Explore it.** Either:
 
-- **Web app:** `webapp/` walks through the whole flow in six pages. See
+- **Web app:** `webapp/` walks through the whole flow in five pages. See
   [webapp/README.md](webapp/README.md) for setup and a demo script.
 - **Notebook:** `demo/pan_lines_walkthrough.ipynb` takes the classification step apart on a small
   sample, one step at a time.

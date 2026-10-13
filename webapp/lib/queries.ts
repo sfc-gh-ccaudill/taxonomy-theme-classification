@@ -115,7 +115,7 @@ export const reads = {
     }
   },
 
-  /* --- Page 2: Taxonomy --- */
+  /* --- Page 2: Config Builder (taxonomy) --- */
 
   /**
    * Each version with what depends on it: the configs bound to it, whether
@@ -186,7 +186,7 @@ export const reads = {
     binds: [from, to],
   }),
 
-  /* --- Page 5: Run Production (and run history everywhere) --- */
+  /* --- Page 4: Run Production (and run history everywhere) --- */
 
   runs: (): Sql => ({
     sql: `SELECT run_id, mode, purpose, taxonomy_version_id, config_name, model,
@@ -264,7 +264,7 @@ export const reads = {
     binds: [runId],
   }),
 
-  /* --- Pages 4 and 6: evaluation --- */
+  /* --- Pages 3 and 5: evaluation --- */
 
   scorecards: (): Sql => ({
     sql: `SELECT eval_id, run_id, run_scope, run_purpose, config_name, taxonomy_version_id,
@@ -392,7 +392,7 @@ export const reads = {
           ORDER BY gap_signal, encounter_id`,
   }),
 
-  /* --- Page 3: Prompts & Configs --- */
+  /* --- Page 2: Config Builder (configs) --- */
 
   /** Every config, templates included, with its taxonomy and latest verdict. */
   configs: (): Sql => ({
@@ -440,7 +440,7 @@ export type ProcName = keyof typeof procs
  *   - booleans are sent as 'TRUE'/'FALSE' and wrapped in TO_BOOLEAN(?)
  */
 export const procs = {
-  /* --- Taxonomy authoring (page 2) --- */
+  /* --- Taxonomy authoring (page 2, Config Builder) --- */
   proposeTaxonomy: {
     sql: `CALL ${S}.PROPOSE_TAXONOMY(?, ?, ?)`,
     args: ["serviceLine", "model", "createdBy"] as const,
@@ -481,7 +481,7 @@ export const procs = {
     long: false,
   },
 
-  /* --- Configs (page 3) --- */
+  /* --- Configs (page 2, Config Builder) --- */
   /** Empty model / template / taxonomy inherit from baseConfig; maxLabels 0 inherits too. */
   registerConfig: {
     sql: `CALL ${S}.REGISTER_CONFIG(?, NULLIF(?, ''), NULLIF(?, ''), NULLIF(?, ''),
@@ -504,7 +504,7 @@ export const procs = {
     long: true,
   },
 
-  /* --- Evaluate & promote (page 4) --- */
+  /* --- Evaluate & promote (page 3) --- */
   /**
    * Labels gold for the config's taxonomy if it has none (~200 frontier-model
    * calls, a couple of minutes), then classifies the gold set and scores it.
@@ -521,7 +521,7 @@ export const procs = {
     long: false,
   },
 
-  /* --- Production (page 5) --- */
+  /* --- Production (page 4) --- */
   /** Always the champion. limit 0 = unbounded. */
   runClassifier: {
     sql: `CALL ${S}.RUN_CLASSIFIER(NULL, ?, NULLIF(?, 0))`,
@@ -534,7 +534,7 @@ export const procs = {
     long: true,
   },
 
-  /* --- Monitor & revise (page 6) --- */
+  /* --- Monitor & revise (page 5) --- */
   proposeTaxonomyRevision: {
     sql: `CALL ${S}.PROPOSE_TAXONOMY_REVISION(?, ?)`,
     args: ["model", "createdBy"] as const,
@@ -554,16 +554,20 @@ export const procs = {
  */
 export const SOURCES = {
   explore: ["NOTE_RAW", "ENCOUNTER_PREP", "GOLD_ENCOUNTER", "DISCOVERY_SAMPLE"],
-  taxonomy: [
+  build: [
     "TAXONOMY_VERSION",
     "TAXONOMY_NODE",
     "TAXONOMY_RENDERED",
+    "PROPOSE_TAXONOMY()",
     "FORK_TAXONOMY()",
     "EDIT_TAXONOMY_NODE()",
     "LOCK_TAXONOMY()",
+    "REJECT_TAXONOMY()",
     "TAXONOMY_DIFF()",
+    "CLASSIFIER_CONFIG",
+    "REGISTER_CONFIG()",
+    "PREVIEW_PROMPT()",
   ],
-  prompts: ["CLASSIFIER_CONFIG", "REGISTER_CONFIG()", "PREVIEW_PROMPT()"],
   evaluate: [
     "EVALUATE_CONFIG()",
     "EVAL_SCORECARD",
