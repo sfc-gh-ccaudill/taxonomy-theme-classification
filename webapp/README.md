@@ -121,7 +121,7 @@ Roughly 15 minutes end to end, all live. Reset first with `demo/reset_webapp.sql
 every lock, reject and promotion as `demo-app` (`DEMO_USER` in `lib/constants.ts`); the promote
 form lets you type a different name.
 
-The numbers below come from the reference build in [docs/results.md](../docs/results.md). Setup
+The numbers below come from the reference build (measured 2026-10-09). Setup
 generates taxonomy v001 live, so a new build has its own subtheme count, category names and
 scores. One test build had 66 subthemes, a 0.91 baseline and 5 unplaceable gold encounters
 instead of 9. The planted gap holds in every build: the design sample has no transportation
@@ -167,13 +167,6 @@ labels, so it costs one gold run.
 
 Version IDs are the next number after the highest existing version, so after
 `reset_webapp.sql` (which deletes everything after v001) the first fork is v002 again.
-
----
-
-## Measured results
-
-Accuracy, gate, gap-detection and cost numbers from the runs this demo script is based on are in
-[docs/results.md](../docs/results.md).
 
 ---
 

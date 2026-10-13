@@ -1,7 +1,7 @@
 # Architecture
 
 How the pipeline is put together and how a taxonomy or prompt change goes from idea to
-production. For measured numbers, see [results.md](results.md).
+production.
 
 - [Design principles](#design-principles)
 - [Schemas](#schemas)

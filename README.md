@@ -162,7 +162,6 @@ it regenerates the corpus and invalidates the gold labels.
 | Doc | What's in it |
 |---|---|
 | [docs/architecture.md](docs/architecture.md) | How the pipeline works: schemas, objects, the register/evaluate/promote lifecycle, the datasets, running on your own data |
-| [docs/results.md](docs/results.md) | Measured accuracy, cost and gap-detection results, findings and known limitations |
 | [docs/architecture_deck.html](docs/architecture_deck.html) | Presentation deck (open in a browser; speaker notes included) |
 | [webapp/README.md](webapp/README.md) | Running the app, the demo script, page-by-page reference |
 
@@ -172,7 +171,7 @@ it regenerates the corpus and invalidates the gold labels.
   contain no PHI. Cortex runs inside the Snowflake account.
 - Model output varies slightly between runs, so measured numbers can move a point or so on a
   re-run. A new build also generates its own taxonomy v001, so its subtheme count and scores
-  differ more than that from [docs/results.md](docs/results.md).
+  differ more than that from the reference build the docs and deck quote.
 
 ## Disclaimer
 

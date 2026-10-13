@@ -11,7 +11,7 @@
   "intent": "Presenter slide deck for the PAN Lines theme extraction pipeline: architecture, approach, workflow, measured results",
   "dataSources": [
     { "type": "file", "path": "docs/architecture.md", "notes": "architecture, design principles, lifecycle" },
-    { "type": "file", "path": "docs/results.md", "notes": "2026-10-09 measured v001 vs revision and candidate results" },
+    { "type": "query", "notes": "2026-10-09 measured v001 vs revision and candidate results, EVAL_SCORECARD and RUN_COST on PAN_DEMO_DB.PIPELINE" },
     { "type": "file", "path": "webapp/README.md", "notes": "app design" },
     { "type": "file", "path": "sql/00_setup.sql..sql/06_app_support.sql", "notes": "object names, gate thresholds (0.70 floor, 0.10 segment regression on segments with n>=20, 0.01 error rate), task schedule, alert" }
   ],
@@ -41,7 +41,7 @@
       "producerNotes": "Baseline is the champion's latest eval (no hand-set baseline since the register/evaluate/promote redesign)." },
     { "id": "s-promote", "title": "Register, evaluate, promote", "dataSources": [{ "type": "file", "path": "sql/04_evaluation.sql" }, { "type": "table", "name": "PAN_DEMO_DB.PIPELINE.PROMOTION_LOG" }, { "type": "view", "name": "PAN_DEMO_DB.PIPELINE.EVAL_GATE" }],
       "producerNotes": "Card numbers are the 2026-10-09 verification on PAN_DEMO_DB.PIPELINE: haiku_enum_v1/v001 0.830, haiku_v2_tax_v001 0.840 PASS, haiku_v1_tax_v002 (hand-edited fork of v001 with Transportation Barrier To Care added) 0.885 PASS, unplaceable gold 9 -> 1, Access 0.750 -> 0.889; rollback to v001 FAIL on Access, promoted with override. ~1.07 credits per 200-encounter gold run from RUN_COST. These differ from s-results, which is the loop-generated 79-subtheme revision." },
-    { "id": "s-results", "title": "Measured results", "dataSources": [{ "type": "file", "path": "docs/results.md" }],
+    { "id": "s-results", "title": "Measured results", "dataSources": [{ "type": "query", "notes": "2026-10-09 measured runs, EVAL_SCORECARD and RUN_COST" }],
       "producerNotes": "Numbers are the 2026-10-09 run on PAN_DEMO_DB.PIPELINE, 200 gold encounters. Segment bars from EVAL_SEGMENT_DETAIL; the Gap scenario bar is test data from PAN_DEMO_DB.SYNTHETIC_DATA.TEST_SCENARIO_SCORECARD. Bar geometry: y = 330 - v*300. Re-running moves them." },
     { "id": "s-llm-cost", "title": "LLM cost monitoring on Snowflake (platform)",
       "dataSources": [
@@ -51,7 +51,7 @@
         { "type": "query", "warehouse": "PAN_DEMO_WH", "sql": "SELECT DATE_TRUNC('day', start_time) AS day, function_name, model_name, SUM(credits) AS credits, COUNT(DISTINCT query_id) AS queries FROM SNOWFLAKE.ACCOUNT_USAGE.CORTEX_AI_FUNCTIONS_USAGE_HISTORY WHERE start_time >= DATEADD(day, -30, CURRENT_TIMESTAMP()) GROUP BY 1, 2, 3 ORDER BY 1 DESC, 4 DESC" }
       ],
       "producerNotes": "Status chips checked 2026-10-13 against release notes: AI Functions cost management GA Mar 2 2026; budgets for AI features GA Apr 10 2026; per-user quotas GA in 10.29 (Aug 2026), weekly limits GA Sep 16 2026; anomaly monitors preview in 10.29. The usage query was executed in the demo account; the quota snippet uses documented method signatures and was not run (it would create a live quota). DESCRIBE VIEW confirmed CORTEX_AI_FUNCTIONS_USAGE_HISTORY columns: START_TIME, END_TIME, FUNCTION_NAME, MODEL_NAME, QUERY_ID, WAREHOUSE_ID, ROLE_NAMES, QUERY_TAG, USER_ID, METRICS, CREDITS, IS_COMPLETED." },
-    { "id": "s-cost", "title": "Cost monitoring", "dataSources": [{ "type": "file", "path": "docs/results.md" }, { "type": "file", "path": "sql/04_evaluation.sql" }] },
+    { "id": "s-cost", "title": "Cost monitoring", "dataSources": [{ "type": "query", "notes": "2026-10-09 measured runs, EVAL_SCORECARD and RUN_COST" }, { "type": "file", "path": "sql/04_evaluation.sql" }] },
     { "id": "s-app", "title": "The app", "dataSources": [{ "type": "file", "path": "webapp/README.md" }, { "type": "file", "path": "webapp/lib/queries.ts" }] },
     { "id": "s-next", "title": "Demo vs production" },
     { "id": "s-task", "title": "Appendix: why a task, not a dynamic table" }
