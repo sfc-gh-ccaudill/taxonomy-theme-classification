@@ -43,8 +43,9 @@
    INSERT / INSERT OVERWRITE instead. If NOTE_RAW is ever replaced anyway,
    re-run this file afterwards.
 
-   PREREQUISITE: 00, 02, the input tables loaded, and a locked taxonomy version.
-   Production scopes also need a champion config (PROMOTE_CONFIG in 04).
+   PREREQUISITE: 00 and 02 to build this file. To classify: the input tables
+   loaded and a locked taxonomy version. Production scopes also need a champion
+   config (PROMOTE_CONFIG in 04).
 ============================================================================ */
 
 USE SCHEMA PAN_DEMO_DB.PIPELINE;

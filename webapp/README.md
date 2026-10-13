@@ -67,11 +67,9 @@ webapp/
 ## Prerequisites
 
 - The pipeline built, in the starting state the demo script expects: a champion config whose
-  taxonomy has gold labels. The quickest way is `demo/setup_from_export.sh`, which builds the
-  pipeline and loads the included data in a couple of minutes (see the root README, Option A).
-  On an account built from scratch, `sql/00_setup.sql` through `sql/06_app_support.sql` must be
-  applied and `demo/reset_webapp.sql` gets you to the same state: `haiku_enum_v1` on v001, 200
-  gold encounters labeled, nothing run.
+  taxonomy has gold labels. The root README's build (the setup notebook, or the SQL files and
+  bootstrap calls from a terminal) ends there: `haiku_enum_v1` on v001, 200 gold encounters
+  labeled, nothing run. After a run-through, `demo/reset_webapp.sql` gets you back to it.
 - A [Snowflake CLI](https://docs.snowflake.com/en/developer-guide/snowflake-cli/index) connection
   with a role that can use the pipeline schema and warehouse.
 - Node 20+.
@@ -123,6 +121,13 @@ Roughly 15 minutes end to end, all live. Reset first with `demo/reset_webapp.sql
 every lock, reject and promotion as `demo-app` (`DEMO_USER` in `lib/constants.ts`); the promote
 form lets you type a different name.
 
+The numbers below come from the reference build in [docs/results.md](../docs/results.md). Setup
+generates taxonomy v001 live, so a new build has its own subtheme count, category names and
+scores. One test build had 66 subthemes, a 0.91 baseline and 5 unplaceable gold encounters
+instead of 9. The planted gap holds in every build: the design sample has no transportation
+notes, so v001 has no transportation subtheme and step 3's candidate still fills a real hole,
+but how much it gains varies. Read your build's numbers off the screen.
+
 1. **Explore Data.** 1260 note rows roll up to 1000 encounters, 200 of them gold, and a design
    sample of 163 notes the taxonomy was built from. Then the amber panel: how the synthetic notes
    were made challenging. This is test-data design; real notes don't carry these tags.
@@ -130,10 +135,11 @@ form lets you type a different name.
    Select it, **Evaluate on gold** (~30s, one gold run, ~1 credit). 0.830, PASS on absolute
    checks only, because there is nothing to compare against yet. Everything after this is gated
    against it.
-3. **Config Builder: author a candidate.** v001 is APPROVED with 78 subthemes. **Show enum
-   contract**: the subtheme list is an `enum`, so an out-of-taxonomy label is impossible. Then
-   **Fork v001 to edit**. **Add subtheme** `Transportation Barrier To Care` under Access Social And
-   Financial Barriers > Home And Social Environment, then **Lock v002**. The save panel at the
+3. **Config Builder: author a candidate.** v001 is APPROVED (78 subthemes in the reference
+   build). **Show enum contract**: the subtheme list is an `enum`, so an out-of-taxonomy label is
+   impossible. Then **Fork v001 to edit**. **Add subtheme** `Transportation Barrier To Care` under
+   the access and social barriers category (in the reference build, Access Social And Financial
+   Barriers > Home And Social Environment), then **Lock v002**. The save panel at the
    bottom suggests a name (e.g. `haiku_v002_1`); **Save config**. Optionally **Try it on 5
    encounters** (writes nothing), then **Continue to evaluation**.
 4. **Evaluate & Promote: the payoff.** Select the candidate, **Evaluate on gold**. It labels gold
@@ -177,7 +183,6 @@ Accuracy, gate, gap-detection and cost numbers from the runs this demo script is
 |---|---|---|
 | `demo/reset_webapp.sql` | Between app run-throughs. Keeps v001 (APPROVED) and its gold labels, the champion `haiku_enum_v1` and the `default_rubric` template; clears runs, evals, promotions, later versions and other configs. | Free, seconds |
 | `demo/reset_demo.sql` | For a from-scratch build, which regenerates the taxonomy live. Also drops gold labels and every config but the template, so there is no champion afterwards. | A taxonomy call + ~200 gold-labeling calls to recover |
-| `demo/setup_from_export.sh` | On an account built from the included data. Rebuilds the pipeline objects and reloads `demo/data/`, landing in the same state as `reset_webapp.sql`. | About 2 minutes; only the preflight's two tiny model calls |
 
 Do not use `sql/01_synthetic_data.sql` to reset. It regenerates the whole corpus and overwrites
 the pipeline's input tables, which invalidates the gold labels.

@@ -51,7 +51,9 @@
    Diversity comes from the seed, not from sampling temperature. All pseudo-random
    choices are HASH-derived and therefore reproducible.
 
-   PREREQUISITE: run 00_setup.sql first (it creates the three input tables).
+   PREREQUISITE: run 00_setup.sql and 02-06 first. 00 creates the three input
+   tables, and TEST_SCENARIO_SCORECARD at the end reads EVAL_RUN, GOLD_LABEL and
+   CLASSIFICATION, which 02-04 create (CREATE VIEW fails if they don't exist).
 
    NAMES: PIPELINE tables are referenced by full name (PAN_DEMO_DB.PIPELINE.*)
    throughout this file. Find-replace those if you rename the database or schema.

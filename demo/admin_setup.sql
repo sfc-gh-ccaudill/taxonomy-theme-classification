@@ -1,7 +1,7 @@
 /* ============================================================================
    ADMIN SETUP: one-time account-level grants for the demo role
    ----------------------------------------------------------------------------
-   Run ONCE as ACCOUNTADMIN, before demo/setup_from_export.sh or the SQL build.
+   Run ONCE as ACCOUNTADMIN, before demo/setup_notebook.ipynb or the SQL build.
    Everything else runs as the demo role.
 
    Why these are needed. A new account's SYSADMIN can create the database,

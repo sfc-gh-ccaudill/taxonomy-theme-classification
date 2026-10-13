@@ -2,7 +2,7 @@
    PREFLIGHT: can this account and role run the demo?
    ----------------------------------------------------------------------------
    Run as the demo role with a warehouse in use, before the build.
-   demo/setup_from_export.sh runs it for you. Needs no database and creates
+   demo/setup_notebook.ipynb runs it for you. Needs no database and creates
    nothing.
 
    Returns one row per check with PASS or FAIL and what to do about a FAIL.

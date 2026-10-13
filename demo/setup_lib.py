@@ -1,9 +1,9 @@
 """Setup helpers for the PAN Lines demo, used by demo/setup_notebook.ipynb.
 
 Everything here runs the repository's own files rather than copies of them:
-SQL files are uploaded to a stage and run with EXECUTE IMMEDIATE FROM, so the
-notebook, the CLI script (demo/setup_from_export.sh) and a by-hand build all
-execute the same statements. Works in a Snowsight Workspace notebook (files are
+SQL files are uploaded to a stage and run with EXECUTE IMMEDIATE FROM, and the
+bootstrap makes the same procedure calls the README lists, so the notebook and
+a by-hand build from a terminal execute the same statements. Works in a Snowsight Workspace notebook (files are
 read from the workspace by path) and on a local kernel with a CLI connection.
 
 Object names match the rest of the repo: database PAN_DEMO_DB, warehouse
@@ -25,9 +25,7 @@ import yaml
 DATABASE = "PAN_DEMO_DB"
 WAREHOUSE = "PAN_DEMO_WH"
 SETUP_STAGE = f"{DATABASE}.PUBLIC.SETUP_FILES"  # SQL files, run from here
-DATA_STAGE = (
-    f"{DATABASE}.SYNTHETIC_DATA.DEMO_DATA_STAGE"  # name import_demo_data.sql expects
-)
+PIPELINE = f"{DATABASE}.PIPELINE"
 
 APP_SCHEMA = f"{DATABASE}.APP"
 APP_NAME = "PAN_THEME_PIPELINE"
@@ -43,16 +41,15 @@ PIPELINE_FILES = [
     "sql/05_revision_loop.sql",
     "sql/06_app_support.sql",
 ]
-DATA_FILES = [
-    "note_raw.csv",
-    "discovery_sample.csv",
-    "gold_encounter.csv",
-    "taxonomy_version.csv",
-    "taxonomy_node.csv",
-    "gold_label.csv",
-    "classifier_config.csv",
-    "test_scenario.csv",
-]
+# Runs after the pipeline: its TEST_SCENARIO_SCORECARD view reads tables that
+# 02-04 create.
+DATA_FILE = "sql/01_synthetic_data.sql"
+
+# The first production config, as the README bootstraps it.
+SERVICE_LINE = "READMISSIONS"
+LABELER_MODEL = "openai-gpt-5.2"  # drafts the taxonomy and labels the gold set
+CHAMPION = "haiku_enum_v1"
+TEMPLATE = "default_rubric"
 
 # Service settings the notebook passes through from webapp/app.yml. Anything
 # else there that changes the service (secrets, external access, scaling)
@@ -113,8 +110,8 @@ def repo_root(start: Path | None = None) -> Path:
     )
 
 
-def _rows(session, sql: str):
-    return session.sql(sql).collect()
+def _rows(session, sql: str, params: list | None = None):
+    return session.sql(sql, params=params).collect()
 
 
 # --------------------------------------------------------------------------
@@ -167,7 +164,7 @@ def preflight(session, root: Path):
 
 
 def build_pipeline(session, root: Path):
-    """sql/00 and 02-06. 01 (synthetic data generation) is skipped."""
+    """sql/00 and 02-06. 01 (the synthetic data) runs next, in generate_demo_data."""
     for rel in PIPELINE_FILES:
         t0 = time.time()
         run_sql_file(session, root, rel)
@@ -175,23 +172,98 @@ def build_pipeline(session, root: Path):
     _rows(session, f"USE WAREHOUSE {WAREHOUSE}")
 
 
-def load_demo_data(session, root: Path):
-    """Upload demo/data/*.csv and run demo/import_demo_data.sql."""
-    _rows(session, f"CREATE SCHEMA IF NOT EXISTS {DATABASE}.SYNTHETIC_DATA")
-    _rows(
-        session,
-        f"CREATE STAGE IF NOT EXISTS {DATA_STAGE} ENCRYPTION = (TYPE = 'SNOWFLAKE_SSE')",
-    )
-    for name in DATA_FILES:
-        session.file.put(
-            str(root / "demo" / "data" / name),
-            f"@{DATA_STAGE}",
-            auto_compress=False,
-            overwrite=True,
+def generate_demo_data(session, root: Path, regenerate: bool = False) -> dict:
+    """sql/01_synthetic_data.sql: the synthetic notes, design sample and gold set.
+
+    About 1000 model calls. Skipped when NOTE_RAW already has notes, because
+    regenerating overwrites the inputs and invalidates every gold label; pass
+    regenerate=True to do it anyway.
+    """
+    notes = _rows(session, f"SELECT COUNT(*) FROM {PIPELINE}.NOTE_RAW")[0][0]
+    if notes and not regenerate:
+        print(
+            f"NOTE_RAW already has {notes} notes; keeping them (regenerate=True to replace)"
         )
-    print(f"uploaded {len(DATA_FILES)} files to @{DATA_STAGE}")
-    rows = run_sql_file(session, root, "demo/import_demo_data.sql")
-    return rows[0].as_dict() if rows else {}
+    else:
+        t0 = time.time()
+        run_sql_file(session, root, DATA_FILE)
+        print(f"{DATA_FILE:28} {time.time() - t0:5.1f}s")
+    _rows(session, f"USE WAREHOUSE {WAREHOUSE}")
+    # Classification reads the dynamic table; don't wait out its target lag.
+    _rows(session, f"ALTER DYNAMIC TABLE {PIPELINE}.ENCOUNTER_PREP REFRESH")
+    row = _rows(
+        session,
+        f"""
+        SELECT (SELECT COUNT(*) FROM {PIPELINE}.NOTE_RAW)         AS note_rows,
+               (SELECT COUNT(*) FROM {PIPELINE}.ENCOUNTER_PREP)   AS encounters,
+               (SELECT COUNT(*) FROM {PIPELINE}.DISCOVERY_SAMPLE) AS discovery_notes,
+               (SELECT COUNT(*) FROM {PIPELINE}.GOLD_ENCOUNTER)   AS gold_encounters""",
+    )[0]
+    return row.as_dict()
+
+
+def _call(session, proc: str, *args) -> str:
+    """CALL a pipeline procedure with bound arguments; a REFUSED reply raises."""
+    marks = ", ".join("?" for _ in args)
+    t0 = time.time()
+    msg = str(_rows(session, f"CALL {PIPELINE}.{proc}({marks})", list(args))[0][0])
+    print(f"{proc:18} {time.time() - t0:5.1f}s  {msg}")
+    if msg.startswith(("REFUSED", "GENERATION FAILED")):
+        raise RuntimeError(f"{proc} did not complete: {msg}")
+    return msg
+
+
+def _bootstrapped(session) -> bool:
+    """v001 and its champion exist with gold labels, whatever has been promoted
+    since: demo/reset_webapp.sql puts them back in charge without model calls."""
+    row = _rows(
+        session,
+        f"""
+        SELECT (SELECT COUNT(*) FROM {PIPELINE}.CLASSIFIER_CONFIG
+                 WHERE config_name = '{CHAMPION}' AND taxonomy_version_id = 'v001'),
+               (SELECT COUNT(*) FROM {PIPELINE}.TAXONOMY_VERSION
+                 WHERE version_id = 'v001' AND status IN ('APPROVED', 'SUPERSEDED')),
+               (SELECT COUNT(*) FROM {PIPELINE}.GOLD_LABEL WHERE taxonomy_version_id = 'v001')""",
+    )[0]
+    return all(row)
+
+
+def bootstrap(session, root: Path, rebuild: bool = False) -> dict:
+    """The first production config, then demo/reset_webapp.sql for the warm start.
+
+    Generates taxonomy v001 from the design sample, locks it, registers
+    haiku_enum_v1 on it, evaluates it (which labels the gold set first) and
+    promotes it: the README's bootstrap calls. Skipped when v001 is already in
+    production with gold labels; pass rebuild=True to start over, which runs
+    demo/reset_demo.sql first and repeats the model calls.
+    """
+    if _bootstrapped(session) and not rebuild:
+        print(
+            f"{CHAMPION} on v001 is already in production with gold labels; keeping it"
+        )
+    else:
+        # PROPOSE_TAXONOMY numbers versions after the highest existing one, so
+        # clear any half-finished attempt to get v001 again.
+        run_sql_file(session, root, "demo/reset_demo.sql")
+        user = session.get_current_user().strip('"').lower()
+        draft = _call(session, "PROPOSE_TAXONOMY", SERVICE_LINE, LABELER_MODEL, user)
+        version = re.search(r"DRAFT (v\d+)", draft).group(1)
+        _call(session, "LOCK_TAXONOMY", version, user)
+        _call(
+            session,
+            "REGISTER_CONFIG",
+            CHAMPION,
+            TEMPLATE,
+            None,
+            None,
+            None,
+            version,
+            "First release",
+        )
+        _call(session, "EVALUATE_CONFIG", CHAMPION, LABELER_MODEL, False)
+        _call(session, "PROMOTE_CONFIG", CHAMPION, user, None)
+    run_sql_file(session, root, "demo/reset_webapp.sql")
+    return verify_state(session)
 
 
 # --------------------------------------------------------------------------
@@ -361,7 +433,7 @@ $$""",
 
 
 def verify_state(session) -> dict:
-    """The warm-start counts, as import_demo_data.sql reports them."""
+    """The warm-start counts: v001 in production, gold labeled, nothing classified."""
     row = _rows(
         session,
         f"""
