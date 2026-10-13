@@ -353,7 +353,7 @@ export function readTomlDefaultConnection(): TomlConnection | null {
 
       // General SNOWFLAKE_<KEY> env vars overlay on every toml connection (spec §3.B)
       const envOverlay: Partial<TomlConnection> = {}
-      const CONN_KEYS = new Set(["account","user","password","database","schema","role","warehouse","protocol","host","port","region","authenticator"])
+      const CONN_KEYS = new Set(["account", "user", "password", "database", "schema", "role", "warehouse", "protocol", "host", "port", "region", "authenticator"])
       for (const [k, v] of Object.entries(process.env)) {
         if (!k.startsWith("SNOWFLAKE_") || k === "SNOWFLAKE_CONNECTION_NAME" || k === "SNOWFLAKE_DEFAULT_CONNECTION_NAME" || k === "SNOWFLAKE_HOME") continue
         const field = k.slice("SNOWFLAKE_".length).toLowerCase()
@@ -556,7 +556,7 @@ function connectAndQuery(
         ...warehouseParams(warehouse),
         ...bindParams(binds),
         complete: (err, stmt, rows) => {
-          conn.destroy(() => {})
+          conn.destroy(() => { })
           const ms = Date.now() - t0
           const qid =
             stmt && typeof stmt.getQueryId === "function" ? ` queryId=${stmt.getQueryId()}` : ""
@@ -593,12 +593,12 @@ function connectAndQueryLongRunning(
       }
       runLongRunningOnConnection(conn as unknown as PollingConnection, query, longOpts, warehouse, binds)
         .then((rows) => {
-          conn.destroy(() => {})
+          conn.destroy(() => { })
           sfLog(`long-running one-shot done mode=${authTag} totalMs=${Date.now() - t0}`)
           resolve(rows)
         })
         .catch((e) => {
-          conn.destroy(() => {})
+          conn.destroy(() => { })
           reject(e)
         })
     })
@@ -701,7 +701,7 @@ export async function querySnowflake(query: string, options: QueryOptions = {}):
     "No Snowflake credentials found. Provide one of:\n" +
     "  1. SPCS token file at /snowflake/session/token\n" +
     "  2. SNOWFLAKE_USER + SNOWFLAKE_PASSWORD env vars\n" +
-      "  3. ~/.snowflake/config.toml with a default connection"
+    "  3. ~/.snowflake/config.toml with a default connection"
   )
 }
 
@@ -882,8 +882,8 @@ function readSecretField(name: string, file: string, env: string): string {
 
   throw new Error(
     `Secret "${name}" field "${file}" is not available. Expected the mounted file ` +
-      `${path.join(SPCS_SECRETS_DIR, name, file)} (SPCS) or the env var ${envVar} (local dev). ` +
-      `Declare the secret under the top-level "secrets:" block in app.yml (see README → Secrets).`,
+    `${path.join(SPCS_SECRETS_DIR, name, file)} (SPCS) or the env var ${envVar} (local dev). ` +
+    `Declare the secret under the top-level "secrets:" block in app.yml (see README → Secrets).`,
   )
 }
 
@@ -965,10 +965,10 @@ async function getLocalOAuthToken(name: string): Promise<string> {
 
   throw new Error(
     `OAuth2 secret "${name}" is not available locally. Set ` +
-      `${secretEnvVarName(name, "OAUTH_TOKEN_URL")} + ${secretEnvVarName(name, "OAUTH_CLIENT_ID")} + ` +
-      `${secretEnvVarName(name, "OAUTH_CLIENT_SECRET")} for the client-credentials refresh flow ` +
-      `(recommended — auto-refreshes), or ${secretEnvVarName(name, "ACCESS_TOKEN")} for a short-lived ` +
-      `static token (see README → Secrets).`,
+    `${secretEnvVarName(name, "OAUTH_TOKEN_URL")} + ${secretEnvVarName(name, "OAUTH_CLIENT_ID")} + ` +
+    `${secretEnvVarName(name, "OAUTH_CLIENT_SECRET")} for the client-credentials refresh flow ` +
+    `(recommended — auto-refreshes), or ${secretEnvVarName(name, "ACCESS_TOKEN")} for a short-lived ` +
+    `static token (see README → Secrets).`,
   )
 }
 
