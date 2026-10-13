@@ -34,18 +34,77 @@ sql/        The pipeline, run in order 00 -> 06
   04_evaluation.sql       scoring, quality gate, cost, register / evaluate / promote
   05_revision_loop.sql    gap review, revision proposals, regression alert
   06_app_support.sql      prompt preview and run status for the web app
-demo/       Walkthrough notebook and reset scripts
+demo/       Setup from the included data, walkthrough notebook, reset scripts
+  setup_notebook.ipynb    builds the account and deploys the web app, from a Snowsight Workspace
+  setup_lib.py            the helpers the setup notebook calls
+  data/                   the demo dataset as CSV (loaded by import_demo_data.sql)
+  setup_from_export.sh    the same build from a terminal with the Snowflake CLI
+  admin_setup.sql         one-time ACCOUNTADMIN grants for a new account
+  preflight.sql           checks models and grants before a build
+  import_demo_data.sql    loads demo/data/ into a built pipeline
+  export_demo_data.sql    regenerates demo/data/ from a built account (maintainers)
 webapp/     Next.js app that drives the whole flow; see webapp/README.md
+  app.yml                 the app's deployment manifest, read by `snow app deploy` and the notebook
 docs/       Design notes, measured results and the presentation deck
 ```
 
 ## Getting started
 
-**Prerequisites:** a Snowflake account with Cortex AI functions (the build uses
-`claude-haiku-4-5` and `openai-gpt-5.2`), a role that can create a database, schema and warehouse,
-and the [Snowflake CLI](https://docs.snowflake.com/en/developer-guide/snowflake-cli/index).
+**Prerequisites:** a paid Snowflake account with Cortex AI functions (the build uses
+`claude-haiku-4-5` and `openai-gpt-5.2`) and a role that can create a database, schema and
+warehouse (SYSADMIN). The web app runs on Snowflake App Runtime, which isn't available on trial
+accounts.
 
-**1. Build the pipeline.** Create the database and warehouse, then run the SQL files in order:
+**0. One-time grants (new accounts).** As ACCOUNTADMIN, run `demo/admin_setup.sql`. It grants
+SYSADMIN the three account-level privileges the build needs (`EXECUTE ALERT`, `EXECUTE TASK`, and
+read access to `SNOWFLAKE.ACCOUNT_USAGE` for cost reporting), and has a commented line that enables
+cross-region inference if a model isn't hosted in your region.
+
+There are two ways to build. Option A is the quick one.
+
+### Option A: load the included demo data (about 10 minutes, web app included)
+
+`demo/data/` holds a ready-made dataset as CSV files: the synthetic notes, the design sample, the
+gold set, taxonomy v001 with its gold labels, and the production config. Loading it skips data
+generation and taxonomy setup, so the account starts where the web app demo begins: v001 in
+production, gold labeled, nothing classified yet.
+
+**From Snowsight (recommended).** Create a Workspace from this Git repository (Projects >
+Workspaces > From Git repository), open `demo/setup_notebook.ipynb` and run it top to bottom with
+the SYSADMIN role. The workspace needs an API integration for GitHub; if the account has none,
+an ACCOUNTADMIN runs this once in a worksheet first (the same block is in `demo/admin_setup.sql`):
+
+```sql
+CREATE API INTEGRATION IF NOT EXISTS PAN_DEMO_GIT
+  API_PROVIDER = git_https_api
+  API_ALLOWED_PREFIXES = ('https://github.com/<owner>')
+  ALLOWED_AUTHENTICATION_SECRETS = ALL
+  ENABLED = TRUE;
+GRANT USAGE ON INTEGRATION PAN_DEMO_GIT TO ROLE SYSADMIN;
+```
+
+For a private repository, choose "Personal access token" in the create-workspace dialog. The
+notebook then:
+
+1. creates `PAN_DEMO_DB` and `PAN_DEMO_WH`
+2. runs `demo/preflight.sql`, which checks that both models answer and the grants are in place,
+   and stops with the fix if not
+3. builds the pipeline from `sql/00` and `02` to `06`
+4. uploads `demo/data/*.csv` and loads it with `demo/import_demo_data.sql`
+5. builds the web app in Snowflake and deploys it as an application service, then prints its URL
+
+Each step runs the repository's own files unchanged, and every step can be rerun. The notebook
+also works on a local Jupyter kernel with a Snowflake CLI connection.
+
+**From a terminal.** `demo/setup_from_export.sh <connection>` runs steps 1 to 4 with the Snowflake
+CLI. Then either run the app locally (`cd webapp && npm install && npm run dev`, open
+http://localhost:3000) or deploy it into Snowflake with `cd webapp && snow app deploy`, which reads
+the app's manifest, `webapp/app.yml` (see [Deploying into Snowflake](webapp/README.md#deploying-into-snowflake)).
+
+### Option B: build everything from scratch
+
+Generates the synthetic notes and the first taxonomy with live model calls (a few minutes and a
+few credits). Create the database and warehouse, then run the SQL files in order:
 
 ```sql
 CREATE DATABASE IF NOT EXISTS PAN_DEMO_DB;
@@ -63,7 +122,7 @@ To use a different database, schema or warehouse, see
 skip it and load the three input tables instead; see
 [Running on your own data](docs/architecture.md#running-on-your-own-data).
 
-**2. Bootstrap a first production config.** Generate a taxonomy, review it, and promote the first
+Then bootstrap a first production config. Generate a taxonomy, review it, and promote the first
 config:
 
 ```sql
@@ -75,7 +134,7 @@ CALL PROMOTE_CONFIG('haiku_enum_v1', 'your.name', NULL);
 CALL CLASSIFY_BATCH('BACKLOG');
 ```
 
-**3. Explore it.** Either:
+### Explore it
 
 - **Web app:** `webapp/` walks through the whole flow in five pages. See
   [webapp/README.md](webapp/README.md) for setup and a demo script.
@@ -83,7 +142,8 @@ CALL CLASSIFY_BATCH('BACKLOG');
   sample, one step at a time.
 
 Between demo run-throughs, reset with `demo/reset_webapp.sql` (production config and gold labels
-kept, runs cleared) or `demo/reset_demo.sql` (back to an unclassified corpus).
+kept, runs cleared) or `demo/reset_demo.sql` (back to an unclassified corpus). On an account built
+with Option A, rerunning `demo/setup_from_export.sh` also works.
 
 ## Documentation
 

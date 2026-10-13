@@ -9,3 +9,6 @@ docs/runbook.html
 
 # Logs
 *.log
+
+# Python
+__pycache__/

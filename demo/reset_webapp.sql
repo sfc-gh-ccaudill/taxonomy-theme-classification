@@ -32,6 +32,9 @@ USE SCHEMA PAN_DEMO_DB.PIPELINE;
 /* Stop the task before touching anything it reads. */
 ALTER TASK IF EXISTS CLASSIFY_ENCOUNTERS SUSPEND;
 
+/* Encounters added live to show the incremental path (ENC-9xxxx). */
+DELETE FROM NOTE_RAW WHERE encounter_id LIKE 'ENC-9%';
+
 /* Outputs the demo produces live. */
 DELETE FROM CLASSIFICATION;
 DELETE FROM CLASSIFICATION_RAW;

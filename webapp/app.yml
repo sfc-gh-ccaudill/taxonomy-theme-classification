@@ -1,3 +1,53 @@
+# Snowflake App Runtime manifest (app.yml version 2).
+#
+# This one file holds everything `snow app deploy` needs: where the app is
+# deployed, how the application service is configured, and how the source is
+# built. Generated with `snow app setup` (Snowflake CLI 3.26+), then extended
+# with the build phases and service settings below.
+#
+#   snow app validate          # bundles the project, checks the database and schema
+#   snow app deploy --verbose  # upload, build in Snowflake, create or update the service
+#   snow app open              # open the deployed app
+#   snow app events            # live service logs
+#
+# Deploys are declarative: the CLI runs CREATE OR ALTER APPLICATION SERVICE with
+# the settings in this file, so anything changed by hand with
+# ALTER APPLICATION SERVICE ... SET is reverted on the next deploy. Make lasting
+# changes here.
+
+version: 2
+
+# Where the app lives. The artifact repository (PAN_THEME_PIPELINE_REPO) and the
+# package name default from `name`, in the same database and schema.
+name: PAN_THEME_PIPELINE
+database: PAN_DEMO_DB
+schema: APP
+query_warehouse: PAN_DEMO_WH
+
+# Excluded from the upload. The whole project root is uploaded otherwise.
+ignore:
+  - node_modules
+  - .env*
+  - __pycache__
+  - "*.pyc"
+  - .next
+  - .git
+  - snowflake.log
+  - output
+  - "*.tsbuildinfo"
+  - "*.log"
+  - .DS_Store
+
+# How the service appears in Snowsight.
+label: "PAN Lines Theme Pipeline"
+description: "Register, evaluate and promote taxonomy classification configs."
+icon: public/icon.svg
+
+# Suspend after an hour without traffic; the next request resumes it.
+auto_resume: true
+auto_suspend_secs: 3600
+
+# Build phases, run by the Snowflake build service in a short-lived container.
 install:
   commands:
     - ["npm", "ci", "--include=dev"]
@@ -5,33 +55,34 @@ install:
 build:
   commands:
     - ["npm", "run", "build"]
-    # For standalone mode
+    # next.config.mjs uses output: 'standalone', which leaves static assets out
+    # of the standalone folder. Copy them in or CSS, JS and images 404.
     - ["cp", "-r", ".next/static", ".next/standalone/.next/static"]
     - ["cp", "-r", "public", ".next/standalone/public"]
-    # Avoid packaging extra node_modules since standalone includes its own
+    # The standalone build ships its own node_modules.
     - ["rm", "-rf", "node_modules"]
 
 run:
   command: ["node", ".next/standalone/server.js"]
 
-# No `version:` key here means this is the build-only manifest: the phases above are
-# the build/run config, and `snowflake.yml` says where the app is deployed. If
-# `snow app setup` generated an `app.yml` with `version: 2` instead, that one file
-# carries both: keep the phases above and add the generated deployment keys to it,
-# leaving a single `app.yml`. See the skill's references/manifests.md.
-
-# Secrets read via getSecret(name, type) in lib/snowflake.ts must be declared here so
-# the SPCS runtime mounts them under /secrets/<name>/. Map a logical `name` to an
-# existing Snowflake SECRET object. `secrets:` (and `environment_variables:`) are
-# TOP-LEVEL keys (siblings of install/run at column 0) in both manifest layouts.
-# Do NOT nest them under `run:`. Uncomment when the app uses secrets.
-# See README → Secrets.
+# Secrets read via getSecret(name, type) in lib/snowflake.ts are declared as
+# top-level keys, mapping a logical name to an existing SECRET object. The app
+# uses none today.
 # secrets:
 #   - name: SOME_API_KEY
-#     secret: DB.SCHEMA.API_KEY
-#   - name: SOME_USER_PASS
-#     secret: DB.SCHEMA.API_KEY_2
+#     secret: PAN_DEMO_DB.APP.SOME_API_KEY
 #
 # environment_variables:
 #   - name: LOG_LEVEL
 #     value: "INFO"
+
+# Separate environments are targets, each its own application service, selected
+# with `snow app deploy --target <name>`. A target's fields override the values
+# above. Not used here: with no targets block, the values above are deployed.
+# default_target: dev
+# targets:
+#   dev: {}
+#   prod:
+#     schema: APP_PROD
+#     query_warehouse: PAN_PROD_WH
+#     min_instances: 2

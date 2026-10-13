@@ -65,28 +65,32 @@ webapp/
 
 ## Prerequisites
 
-- `sql/00_setup.sql` through `sql/06_app_support.sql` applied. `06` is required for
-  `PREVIEW_PROMPT` and `APP_RUN_STATUS`; everything else the app calls lives in `02` to `05`.
-- A champion config whose taxonomy has gold labels. `demo/reset_webapp.sql` leaves the account in
-  exactly that state: `haiku_enum_v1` on v001, 200 gold encounters labeled, nothing run.
+- The pipeline built, in the starting state the demo script expects: a champion config whose
+  taxonomy has gold labels. The quickest way is `demo/setup_from_export.sh`, which builds the
+  pipeline and loads the included data in a couple of minutes (see the root README, Option A).
+  On an account built from scratch, `sql/00_setup.sql` through `sql/06_app_support.sql` must be
+  applied and `demo/reset_webapp.sql` gets you to the same state: `haiku_enum_v1` on v001, 200
+  gold encounters labeled, nothing run.
 - A [Snowflake CLI](https://docs.snowflake.com/en/developer-guide/snowflake-cli/index) connection
   with a role that can use the pipeline schema and warehouse.
 - Node 20+.
 
 ### Configuration
 
-Create `webapp/.env.local` (gitignored) with three values, plus one optional:
+None is needed if your default CLI connection points at the demo account and the build uses the
+default names. The app reads the connection from `~/.snowflake/connections.toml` (the same file
+the CLI uses) and defaults to `PAN_DEMO_DB.PIPELINE` and `PAN_DEMO_WH`.
+
+To override any of that, create `webapp/.env.local` (gitignored):
 
 ```bash
-SNOWFLAKE_CONNECTION_NAME=<your connection name>
+SNOWFLAKE_CONNECTION_NAME=<your connection name>   # default: the CLI's default connection
 PAN_SCHEMA=PAN_DEMO_DB.PIPELINE
 PAN_WAREHOUSE=PAN_DEMO_WH
-# optional, defaults to PAN_DEMO_DB.SYNTHETIC_DATA
 PAN_TEST_DATA_SCHEMA=PAN_DEMO_DB.SYNTHETIC_DATA
 ```
 
-Credentials never go in the app. `lib/snowflake.ts` reads the named connection from
-`~/.snowflake/connections.toml`, the same file the CLI uses.
+Credentials never go in the app.
 
 Then install and start:
 
@@ -169,6 +173,7 @@ Accuracy, gate, gap-detection and cost numbers from the runs this demo script is
 |---|---|---|
 | `demo/reset_webapp.sql` | Between app run-throughs. Keeps v001 (APPROVED) and its gold labels, the champion `haiku_enum_v1` and the `default_rubric` template; clears runs, evals, promotions, later versions and other configs. | Free, seconds |
 | `demo/reset_demo.sql` | For a from-scratch build, which regenerates the taxonomy live. Also drops gold labels and every config but the template, so there is no champion afterwards. | A taxonomy call + ~200 gold-labeling calls to recover |
+| `demo/setup_from_export.sh` | On an account built from the included data. Rebuilds the pipeline objects and reloads `demo/data/`, landing in the same state as `reset_webapp.sql`. | About 2 minutes; only the preflight's two tiny model calls |
 
 Do not use `sql/01_synthetic_data.sql` to reset. It regenerates the whole corpus and overwrites
 the pipeline's input tables, which invalidates the gold labels.
@@ -177,20 +182,71 @@ the pipeline's input tables, which invalidates the gold labels.
 
 ## Deploying into Snowflake
 
-The project is scaffolded from the Snowflake App Runtime Next.js template, so it deploys as an
-`APPLICATION SERVICE` without a rewrite. Nothing has been deployed yet.
+The project is a Snowflake App Runtime app: a Next.js app that runs inside Snowflake as an
+`APPLICATION SERVICE`, next to the data. Everything about how it deploys is in one file,
+[`app.yml`](app.yml), the app's manifest:
+
+| Section | What it controls |
+|---|---|
+| `version: 2` | Tells the Snowflake CLI this file holds the deployment config. Without it every key below except the build phases is ignored |
+| `name`, `database`, `schema`, `query_warehouse` | The service `PAN_DEMO_DB.APP.PAN_THEME_PIPELINE` and the warehouse its queries run on |
+| `ignore` | What is not uploaded: dependencies, build output, `.env*` files, logs |
+| `label`, `description`, `icon` | How the app appears in Snowsight |
+| `auto_resume`, `auto_suspend_secs` | Suspend after an hour idle, resume on the next request |
+| `install`, `build`, `run` | The `npm` commands Snowflake runs to build the app and start it |
+
+The file was generated with `snow app setup` and then extended, so it follows the CLI's own
+layout. It ends with commented examples of secrets and of separate dev and prod targets.
+
+### With the Snowflake CLI
+
+Needs Snowflake CLI 3.26 or later (`snow app deploy --help` lists `--target`) and the `APP`
+schema (the notebook creates it; otherwise `CREATE SCHEMA IF NOT EXISTS PAN_DEMO_DB.APP;`).
+From this folder:
 
 ```bash
-snow app setup --app-name="pan_theme_pipeline" --warehouse PAN_DEMO_WH
-snow app deploy --verbose
+snow app validate --connection <name>          # bundles the project, checks database and schema
+snow app deploy --verbose --connection <name>  # upload, build in Snowflake, create or update
+snow app open --connection <name>              # open the deployed app
+snow app events --connection <name>            # live service logs
 ```
 
-Before deploying:
+`snow app deploy` runs three phases:
 
-- **The pages run as the service identity by default.** `lib/snowflake.ts` supports caller's
-  rights via `{ callersRights: true }`, but no query in `lib/queries.ts` requests it. For a
-  shared app you'll likely want caller's rights on the read paths so each user's grants apply;
-  that is a per-query change plus caller grants on the app's owning role.
+1. **Upload.** Bundles this folder minus `ignore` and uploads it to a code stage in
+   `PAN_DEMO_DB.APP`.
+2. **Build.** Runs `install` and `build` from `app.yml` in a short-lived Snowflake container
+   and stores the result as a new version in the artifact repository
+   `PAN_DEMO_DB.APP.PAN_THEME_PIPELINE_REPO`. About 4 minutes.
+3. **Apply.** `CREATE OR ALTER APPLICATION SERVICE` from the latest version, with the settings in
+   `app.yml`. The URL stays the same across deploys.
+
+Phase 3 is declarative: the service ends up matching `app.yml` exactly. A setting changed by hand
+with `ALTER APPLICATION SERVICE ... SET` is reverted on the next deploy, so make lasting changes
+in `app.yml`.
+
+The deploying role needs `USAGE` on `PAN_DEMO_DB`, `PAN_DEMO_DB.APP` and `PAN_DEMO_WH`, plus
+`CREATE APPLICATION SERVICE`, `CREATE ARTIFACT REPOSITORY` and `CREATE STAGE` on the `APP` schema.
+A redeploy also needs ownership of the service. SYSADMIN, which creates the database, has all of
+these.
+
+### From a Snowsight Workspace (no CLI)
+
+Step 5 of `demo/setup_notebook.ipynb` runs the same three phases as SQL, reading the ignore list
+and service settings from the same `app.yml` (`upload_webapp`, `build_webapp` and
+`deploy_webapp_service` in `demo/setup_lib.py`). It applies only the settings shown in the table
+above; if `app.yml` gains secrets, external access integrations, scaling or targets, the notebook
+stops and asks you to deploy with the CLI. Its build step calls the system function the CLI uses
+(`SYSTEM$SPCS_TEST_BUILD_APP_ARTIFACT_REPO`), which isn't separately documented, so if the two
+paths ever behave differently, trust the CLI.
+
+Things to know about the deployed app:
+
+- **It runs as the service's owning role.** Every user who opens the URL acts as that role
+  (normally SYSADMIN). `lib/snowflake.ts` supports caller's rights via `{ callersRights: true }`,
+  but no query in `lib/queries.ts` requests it. For a shared app you'll likely want caller's rights
+  on the read paths so each user's grants apply; that is a per-query change plus caller grants on
+  the app's owning role.
 - **The actor name is a constant.** Locks, rejects and promotions are recorded as `DEMO_USER`
   (the promote form can override it). A deployed app should take it from the signed-in user.
 - **`next.config.mjs` pins the workspace root.** Do not remove it, and do not add a lockfile in
@@ -201,7 +257,7 @@ Before deploying:
 ## Verifying
 
 ```bash
-./smoke.sh                     # all 6 pages, 8 API routes, allowlist rejection, log scan
+./smoke.sh                     # all 5 pages, 8 API routes, allowlist rejection, log scan
 npx tsc --noEmit               # npm run build skips type checking
 npm test                       # vitest, template's example tests
 ```
@@ -218,7 +274,11 @@ only in the template's own `__tests__/lib/snowflake.test.ts`, which predate this
   through `querySnowflakeLongRunning`, so a full-batch run or a first evaluation of a new taxonomy
   (gold labeling, a few minutes) holds the connection for the duration. The UI shows a stopwatch
   and polls `APP_RUN_STATUS` alongside it, which is enough at demo scale but is not a job queue.
-  A production build would submit asynchronously and poll by `query_id` only.
+  A production build would submit asynchronously and poll by `query_id` only. When the app runs
+  as an application service, requests pass through the Snowflake endpoint, and holding one open
+  for the few minutes a first evaluation takes has not been tested there. If the page reports a
+  failure but the work continues, `APP_RUN_STATUS` and the evaluation list show the result once
+  it lands.
 - **Promotion takes several seconds.** `PROMOTE_CONFIG` reads `EVAL_GATE`, a view that recomputes
   every eval's verdict. Fine at this scale; materialize it if the eval history grows large.
 - **Cost shows "pending" for a minute or two.** `RUN_COST` reads

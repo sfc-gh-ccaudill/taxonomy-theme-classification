@@ -56,6 +56,17 @@ The two `TEST_SCENARIO` views read pipeline outputs to show how each kind of syn
 scored (see [The demo datasets](#the-demo-datasets)). Real notes don't carry those tags, so the
 pipeline itself never uses them.
 
+**When built from the included data** (`demo/setup_from_export.sh`), `SYNTHETIC_DATA` is smaller:
+the generator tables aren't exported, so it holds `TEST_SCENARIO` as a table loaded from
+`demo/data/test_scenario.csv`, the `TEST_SCENARIO_SCORECARD` view, and the stage and file format
+used to load. `PIPELINE` is identical either way.
+
+**The deployed web app** lives in a third schema, `APP`: the built packages
+(`PAN_THEME_PIPELINE_REPO` artifact repository) and the application service `PAN_THEME_PIPELINE`,
+both as declared in `webapp/app.yml`, plus a code stage that holds the uploaded source during a
+build (`snow app deploy` drops it once the build is done). It reads and calls `PIPELINE`
+objects only, and dropping `APP` removes the app without touching the pipeline.
+
 ## Objects and data flow
 
 ```
@@ -181,6 +192,9 @@ The build uses `PAN_DEMO_DB.PIPELINE` and `PAN_DEMO_DB.SYNTHETIC_DATA` with an X
 
 - Change the `USE DATABASE` / `CREATE SCHEMA` block at the top of `00` and the `USE SCHEMA` line at
   the top of `01` to `06` and the reset scripts. `01` also writes to the input tables by full name.
-- Find-and-replace `PAN_DEMO_WH`. The dynamic table, task and alert need a literal warehouse name.
+- If you build from the included data, find-and-replace `PAN_DEMO_DB` in
+  `demo/import_demo_data.sql` and `demo/setup_from_export.sh` too (both use full names).
+- Find-and-replace `PAN_DEMO_WH`. The dynamic table, task and alert need a literal warehouse name,
+  and `demo/setup_from_export.sh` runs the build on it.
 
 AI token cost attribution works on any warehouse, since it's keyed on query ID.

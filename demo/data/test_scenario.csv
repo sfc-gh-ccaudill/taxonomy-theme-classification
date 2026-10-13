@@ -1,0 +1,1001 @@
+"ENCOUNTER_ID","IS_GOLD","TEST_SCENARIO","VERBOSITY","CONFUSABLE_WITH","IN_DISCOVERY_SAMPLE"
+"ENC-00001",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00002",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00003",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00004",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00005",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00006",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00007",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00008",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00009",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00010",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00011",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00012",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00013",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00014",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00015",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00016",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00017",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00018",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00019",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00020",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00021",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00022",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00023",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00024",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00025",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00026",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00027",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00028",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00029",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00030",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00031",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00032",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00033",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00034",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00035",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00036",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00037",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00038",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00039",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00040",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00041",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00042",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00043",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00044",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00045",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00046",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00047",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00048",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00049",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00050",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00051",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00052",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00053",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00054",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00055",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00056",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00057",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00058",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00059",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00060",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00061",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00062",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00063",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00064",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00065",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00066",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00067",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00068",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00069",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00070",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00071",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00072",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00073",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00074",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00075",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00076",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00077",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00078",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00079",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00080",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00081",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00082",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00083",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00084",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00085",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00086",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00087",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00088",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00089",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00090",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00091",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00092",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00093",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00094",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00095",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00096",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00097",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00098",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00099",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00100",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00101",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00102",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00103",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00104",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00105",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00106",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00107",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00108",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00109",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00110",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00111",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00112",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00113",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00114",true,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00115",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00116",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00117",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00118",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00119",true,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00120",true,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00121",true,"NEAR_NEIGHBOUR","TERSE","Prescription Not Received At Pharmacy",false
+"ENC-00122",true,"NEAR_NEIGHBOUR","RAMBLING","Post-Op Nausea Vomiting",false
+"ENC-00123",true,"NEAR_NEIGHBOUR","TERSE","Surgical Site Pain Uncontrolled",false
+"ENC-00124",true,"NEAR_NEIGHBOUR","RAMBLING","Medication Cost Barrier",false
+"ENC-00125",true,"NEAR_NEIGHBOUR","RAMBLING","Surgical Site Pain Uncontrolled",false
+"ENC-00126",true,"NEAR_NEIGHBOUR","TERSE","Wound Care Instruction Unclear",false
+"ENC-00127",true,"NEAR_NEIGHBOUR","NORMAL","Post-Op Nausea Vomiting",false
+"ENC-00128",true,"NEAR_NEIGHBOUR","RAMBLING","Surgical Site Pain Uncontrolled",false
+"ENC-00129",true,"NEAR_NEIGHBOUR","NORMAL","Surgical Site Pain Uncontrolled",false
+"ENC-00130",true,"NEAR_NEIGHBOUR","NORMAL","Surgical Site Pain Uncontrolled",false
+"ENC-00131",true,"NEAR_NEIGHBOUR","NORMAL","No Transportation To Follow-Up",false
+"ENC-00132",true,"NEAR_NEIGHBOUR","NORMAL","Medication Cost Barrier",false
+"ENC-00133",true,"NEAR_NEIGHBOUR","RAMBLING","Wound Care Instruction Unclear",false
+"ENC-00134",true,"NEAR_NEIGHBOUR","NORMAL","No Transportation To Follow-Up",false
+"ENC-00135",true,"NEAR_NEIGHBOUR","NORMAL","Prescription Not Received At Pharmacy",false
+"ENC-00136",true,"NEAR_NEIGHBOUR","NORMAL","Medication Cost Barrier",false
+"ENC-00137",true,"NEAR_NEIGHBOUR","RAMBLING","No Transportation To Follow-Up",false
+"ENC-00138",true,"NEAR_NEIGHBOUR","TERSE","Nausea Vomiting Not Post-Op",false
+"ENC-00139",true,"NEAR_NEIGHBOUR","NORMAL","Surgical Site Pain Uncontrolled",false
+"ENC-00140",true,"NEAR_NEIGHBOUR","RAMBLING","Surgical Site Pain Uncontrolled",false
+"ENC-00141",true,"NEAR_NEIGHBOUR","RAMBLING","Prescription Not Received At Pharmacy",false
+"ENC-00142",true,"NEAR_NEIGHBOUR","NORMAL","Prescription Not Received At Pharmacy",false
+"ENC-00143",true,"NEAR_NEIGHBOUR","NORMAL","Wound Care Instruction Unclear",false
+"ENC-00144",true,"NEAR_NEIGHBOUR","NORMAL","Medication Cost Barrier",false
+"ENC-00145",true,"NEAR_NEIGHBOUR","TERSE","No Transportation To Follow-Up",false
+"ENC-00146",true,"NEAR_NEIGHBOUR","NORMAL","Post-Op Nausea Vomiting",false
+"ENC-00147",true,"NEAR_NEIGHBOUR","TERSE","Post-Op Nausea Vomiting",false
+"ENC-00148",true,"NEAR_NEIGHBOUR","RAMBLING","Unable To Afford Copay Or Visit",false
+"ENC-00149",true,"NEAR_NEIGHBOUR","NORMAL","Post-Op Nausea Vomiting",false
+"ENC-00150",true,"NEAR_NEIGHBOUR","TERSE","Unable To Afford Copay Or Visit",false
+"ENC-00151",true,"MULTI_LABEL","RAMBLING","\N",false
+"ENC-00152",true,"MULTI_LABEL","TERSE","\N",false
+"ENC-00153",true,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00154",true,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00155",true,"MULTI_LABEL","TERSE","\N",false
+"ENC-00156",true,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00157",true,"MULTI_LABEL","TERSE","\N",false
+"ENC-00158",true,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00159",true,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00160",true,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00161",true,"MULTI_LABEL","TERSE","\N",false
+"ENC-00162",true,"MULTI_LABEL","TERSE","\N",false
+"ENC-00163",true,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00164",true,"MULTI_LABEL","RAMBLING","\N",false
+"ENC-00165",true,"MULTI_LABEL","RAMBLING","\N",false
+"ENC-00166",true,"MULTI_LABEL","TERSE","\N",false
+"ENC-00167",true,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00168",true,"MULTI_LABEL","RAMBLING","\N",false
+"ENC-00169",true,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00170",true,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00171",true,"GAP","TERSE","\N",false
+"ENC-00172",true,"GAP","RAMBLING","\N",false
+"ENC-00173",true,"GAP","NORMAL","\N",false
+"ENC-00174",true,"GAP","RAMBLING","\N",false
+"ENC-00175",true,"GAP","NORMAL","\N",false
+"ENC-00176",true,"GAP","NORMAL","\N",false
+"ENC-00177",true,"GAP","RAMBLING","\N",false
+"ENC-00178",true,"GAP","NORMAL","\N",false
+"ENC-00179",true,"GAP","NORMAL","\N",false
+"ENC-00180",true,"GAP","RAMBLING","\N",false
+"ENC-00181",true,"GAP","TERSE","\N",false
+"ENC-00182",true,"GAP","NORMAL","\N",false
+"ENC-00183",true,"GAP","RAMBLING","\N",false
+"ENC-00184",true,"GAP","RAMBLING","\N",false
+"ENC-00185",true,"GAP","NORMAL","\N",false
+"ENC-00186",true,"AMBIGUOUS","RAMBLING","Surgical Site Pain Uncontrolled",false
+"ENC-00187",true,"AMBIGUOUS","NORMAL","Nausea Vomiting Not Post-Op",false
+"ENC-00188",true,"AMBIGUOUS","NORMAL","No Transportation To Follow-Up",false
+"ENC-00189",true,"AMBIGUOUS","NORMAL","Medication Not Started",false
+"ENC-00190",true,"AMBIGUOUS","NORMAL","Wound Care Service Gap",false
+"ENC-00191",true,"AMBIGUOUS","NORMAL","Medication Cost Barrier",false
+"ENC-00192",true,"AMBIGUOUS","TERSE","Prescription Not Received At Pharmacy",false
+"ENC-00193",true,"AMBIGUOUS","TERSE","Surgical Site Pain Uncontrolled",false
+"ENC-00194",true,"AMBIGUOUS","RAMBLING","Wound Care Instruction Unclear",false
+"ENC-00195",true,"AMBIGUOUS","RAMBLING","Abdominal Pain Not Surgical",false
+"ENC-00196",true,"AMBIGUOUS","RAMBLING","Nausea Vomiting Not Post-Op",false
+"ENC-00197",true,"AMBIGUOUS","NORMAL","No Transportation To Follow-Up",false
+"ENC-00198",true,"AMBIGUOUS","NORMAL","Medication Not Started",false
+"ENC-00199",true,"AMBIGUOUS","NORMAL","Unable To Afford Copay Or Visit",false
+"ENC-00200",true,"AMBIGUOUS","RAMBLING","Prescription Not Received At Pharmacy",false
+"ENC-00201",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00202",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00203",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00204",false,"GAP","NORMAL","\N",false
+"ENC-00205",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00206",false,"NEAR_NEIGHBOUR","NORMAL","Nausea Vomiting Not Post-Op",true
+"ENC-00207",false,"MULTI_LABEL","TERSE","\N",false
+"ENC-00208",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00209",false,"NEAR_NEIGHBOUR","RAMBLING","Post-Op Nausea Vomiting",false
+"ENC-00210",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00211",false,"MULTI_LABEL","RAMBLING","\N",false
+"ENC-00212",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00213",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00214",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00215",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00216",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00217",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00218",false,"AMBIGUOUS","RAMBLING","Medication Not Started",true
+"ENC-00219",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00220",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00221",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00222",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00223",false,"GAP","NORMAL","\N",false
+"ENC-00224",false,"NEAR_NEIGHBOUR","NORMAL","Post-Op Nausea Vomiting",true
+"ENC-00225",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00226",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00227",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00228",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00229",false,"NEAR_NEIGHBOUR","RAMBLING","Wound Care Service Gap",false
+"ENC-00230",false,"NEAR_NEIGHBOUR","NORMAL","No Transportation To Follow-Up",false
+"ENC-00231",false,"NEAR_NEIGHBOUR","NORMAL","Unable To Afford Copay Or Visit",false
+"ENC-00232",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00233",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00234",false,"GAP","NORMAL","\N",false
+"ENC-00235",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00236",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00237",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00238",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00239",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00240",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00241",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00242",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00243",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00244",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00245",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00246",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00247",false,"GAP","NORMAL","\N",false
+"ENC-00248",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00249",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00250",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00251",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00252",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00253",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00254",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00255",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00256",false,"AMBIGUOUS","TERSE","Unable To Afford Copay Or Visit",true
+"ENC-00257",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00258",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00259",false,"NEAR_NEIGHBOUR","NORMAL","Surgical Site Pain Uncontrolled",false
+"ENC-00260",false,"AMBIGUOUS","NORMAL","Prescription Not Received At Pharmacy",true
+"ENC-00261",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00262",false,"NEAR_NEIGHBOUR","NORMAL","Medication Cost Barrier",true
+"ENC-00263",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00264",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00265",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00266",false,"MULTI_LABEL","NORMAL","\N",true
+"ENC-00267",false,"GAP","NORMAL","\N",false
+"ENC-00268",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00269",false,"AMBIGUOUS","RAMBLING","Surgical Site Pain Uncontrolled",false
+"ENC-00270",false,"MULTI_LABEL","NORMAL","\N",true
+"ENC-00271",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00272",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00273",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00274",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00275",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00276",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00277",false,"GAP","NORMAL","\N",false
+"ENC-00278",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00279",false,"GAP","RAMBLING","\N",false
+"ENC-00280",false,"NEAR_NEIGHBOUR","NORMAL","Wound Care Service Gap",true
+"ENC-00281",false,"GAP","TERSE","\N",false
+"ENC-00282",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00283",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00284",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00285",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00286",false,"GAP","NORMAL","\N",false
+"ENC-00287",false,"MULTI_LABEL","RAMBLING","\N",false
+"ENC-00288",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00289",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00290",false,"NEAR_NEIGHBOUR","RAMBLING","Wound Care Instruction Unclear",true
+"ENC-00291",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00292",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00293",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00294",false,"MULTI_LABEL","NORMAL","\N",true
+"ENC-00295",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00296",false,"GAP","RAMBLING","\N",false
+"ENC-00297",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00298",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00299",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00300",false,"NEAR_NEIGHBOUR","NORMAL","No Transportation To Follow-Up",false
+"ENC-00301",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00302",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00303",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00304",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00305",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00306",false,"NEAR_NEIGHBOUR","NORMAL","Abdominal Pain Not Surgical",true
+"ENC-00307",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00308",false,"GAP","RAMBLING","\N",false
+"ENC-00309",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00310",false,"GAP","NORMAL","\N",false
+"ENC-00311",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00312",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00313",false,"GAP","NORMAL","\N",false
+"ENC-00314",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00315",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00316",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00317",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00318",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00319",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00320",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00321",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00322",false,"GAP","NORMAL","\N",false
+"ENC-00323",false,"NEAR_NEIGHBOUR","NORMAL","No Transportation To Follow-Up",false
+"ENC-00324",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00325",false,"GAP","NORMAL","\N",false
+"ENC-00326",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00327",false,"GAP","NORMAL","\N",false
+"ENC-00328",false,"MULTI_LABEL","RAMBLING","\N",true
+"ENC-00329",false,"GAP","RAMBLING","\N",false
+"ENC-00330",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00331",false,"NEAR_NEIGHBOUR","NORMAL","Nausea Vomiting Not Post-Op",false
+"ENC-00332",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00333",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00334",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00335",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00336",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00337",false,"GAP","NORMAL","\N",false
+"ENC-00338",false,"NEAR_NEIGHBOUR","NORMAL","Abdominal Pain Not Surgical",true
+"ENC-00339",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00340",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00341",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00342",false,"GAP","NORMAL","\N",false
+"ENC-00343",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00344",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00345",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00346",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00347",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00348",false,"GAP","NORMAL","\N",false
+"ENC-00349",false,"NEAR_NEIGHBOUR","NORMAL","No Transportation To Follow-Up",false
+"ENC-00350",false,"NEAR_NEIGHBOUR","RAMBLING","No Transportation To Follow-Up",false
+"ENC-00351",false,"GAP","NORMAL","\N",false
+"ENC-00352",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00353",false,"NEAR_NEIGHBOUR","NORMAL","Surgical Site Pain Uncontrolled",false
+"ENC-00354",false,"NEAR_NEIGHBOUR","TERSE","Unable To Afford Copay Or Visit",true
+"ENC-00355",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00356",false,"NEAR_NEIGHBOUR","RAMBLING","Nausea Vomiting Not Post-Op",true
+"ENC-00357",false,"NEAR_NEIGHBOUR","NORMAL","Medication Cost Barrier",false
+"ENC-00358",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00359",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00360",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00361",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00362",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00363",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00364",false,"MULTI_LABEL","NORMAL","\N",true
+"ENC-00365",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00366",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00367",false,"NEAR_NEIGHBOUR","NORMAL","Surgical Site Pain Uncontrolled",false
+"ENC-00368",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00369",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00370",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00371",false,"GAP","NORMAL","\N",false
+"ENC-00372",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00373",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00374",false,"MULTI_LABEL","RAMBLING","\N",true
+"ENC-00375",false,"AMBIGUOUS","NORMAL","Prescription Not Received At Pharmacy",false
+"ENC-00376",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00377",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00378",false,"NEAR_NEIGHBOUR","RAMBLING","Post-Op Nausea Vomiting",true
+"ENC-00379",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00380",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00381",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00382",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00383",false,"NEAR_NEIGHBOUR","TERSE","No Transportation To Follow-Up",false
+"ENC-00384",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00385",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00386",false,"AMBIGUOUS","NORMAL","Post-Op Nausea Vomiting",true
+"ENC-00387",false,"GAP","NORMAL","\N",false
+"ENC-00388",false,"GAP","TERSE","\N",false
+"ENC-00389",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00390",false,"NEAR_NEIGHBOUR","RAMBLING","Unable To Afford Copay Or Visit",true
+"ENC-00391",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00392",false,"NEAR_NEIGHBOUR","NORMAL","Unable To Afford Copay Or Visit",true
+"ENC-00393",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00394",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00395",false,"GAP","NORMAL","\N",false
+"ENC-00396",false,"MULTI_LABEL","NORMAL","\N",true
+"ENC-00397",false,"NEAR_NEIGHBOUR","NORMAL","Medication Cost Barrier",false
+"ENC-00398",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00399",false,"AMBIGUOUS","RAMBLING","Post-Op Nausea Vomiting",false
+"ENC-00400",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00401",false,"NEAR_NEIGHBOUR","NORMAL","No Transportation To Follow-Up",false
+"ENC-00402",false,"AMBIGUOUS","RAMBLING","Prescription Not Received At Pharmacy",true
+"ENC-00403",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00404",false,"NEAR_NEIGHBOUR","TERSE","Surgical Site Pain Uncontrolled",true
+"ENC-00405",false,"NEAR_NEIGHBOUR","NORMAL","Medication Not Started",false
+"ENC-00406",false,"NEAR_NEIGHBOUR","TERSE","Medication Not Started",true
+"ENC-00407",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00408",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00409",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00410",false,"GAP","NORMAL","\N",false
+"ENC-00411",false,"NEAR_NEIGHBOUR","RAMBLING","Medication Cost Barrier",false
+"ENC-00412",false,"NEAR_NEIGHBOUR","NORMAL","Nausea Vomiting Not Post-Op",true
+"ENC-00413",false,"NEAR_NEIGHBOUR","TERSE","Wound Care Instruction Unclear",false
+"ENC-00414",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00415",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00416",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00417",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00418",false,"MULTI_LABEL","RAMBLING","\N",true
+"ENC-00419",false,"AMBIGUOUS","NORMAL","Wound Care Service Gap",false
+"ENC-00420",false,"NEAR_NEIGHBOUR","NORMAL","Surgical Site Pain Uncontrolled",true
+"ENC-00421",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00422",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00423",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00424",false,"GAP","RAMBLING","\N",false
+"ENC-00425",false,"AMBIGUOUS","TERSE","Wound Care Instruction Unclear",false
+"ENC-00426",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00427",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00428",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00429",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00430",false,"NEAR_NEIGHBOUR","NORMAL","Nausea Vomiting Not Post-Op",true
+"ENC-00431",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00432",false,"GAP","RAMBLING","\N",false
+"ENC-00433",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00434",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00435",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00436",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00437",false,"GAP","NORMAL","\N",false
+"ENC-00438",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00439",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00440",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00441",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00442",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00443",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00444",false,"NEAR_NEIGHBOUR","RAMBLING","Abdominal Pain Not Surgical",true
+"ENC-00445",false,"GAP","NORMAL","\N",false
+"ENC-00446",false,"NEAR_NEIGHBOUR","NORMAL","Abdominal Pain Not Surgical",true
+"ENC-00447",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00448",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00449",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00450",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00451",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00452",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00453",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00454",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00455",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00456",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00457",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00458",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00459",false,"NEAR_NEIGHBOUR","NORMAL","Nausea Vomiting Not Post-Op",false
+"ENC-00460",false,"GAP","NORMAL","\N",false
+"ENC-00461",false,"GAP","NORMAL","\N",false
+"ENC-00462",false,"NEAR_NEIGHBOUR","NORMAL","Surgical Site Pain Uncontrolled",true
+"ENC-00463",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00464",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00465",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00466",false,"GAP","RAMBLING","\N",false
+"ENC-00467",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00468",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00469",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00470",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00471",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00472",false,"GAP","TERSE","\N",false
+"ENC-00473",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00474",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00475",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00476",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00477",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00478",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00479",false,"AMBIGUOUS","TERSE","Surgical Site Pain Uncontrolled",false
+"ENC-00480",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00481",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00482",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00483",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00484",false,"NEAR_NEIGHBOUR","NORMAL","Nausea Vomiting Not Post-Op",true
+"ENC-00485",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00486",false,"NEAR_NEIGHBOUR","NORMAL","Unable To Afford Copay Or Visit",true
+"ENC-00487",false,"MULTI_LABEL","RAMBLING","\N",false
+"ENC-00488",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00489",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00490",false,"GAP","NORMAL","\N",false
+"ENC-00491",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00492",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00493",false,"NEAR_NEIGHBOUR","NORMAL","Wound Care Instruction Unclear",false
+"ENC-00494",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00495",false,"NEAR_NEIGHBOUR","NORMAL","No Transportation To Follow-Up",false
+"ENC-00496",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00497",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00498",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00499",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00500",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00501",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00502",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00503",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00504",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00505",false,"MULTI_LABEL","TERSE","\N",false
+"ENC-00506",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00507",false,"NEAR_NEIGHBOUR","NORMAL","Medication Cost Barrier",false
+"ENC-00508",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00509",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00510",false,"NEAR_NEIGHBOUR","NORMAL","Abdominal Pain Not Surgical",true
+"ENC-00511",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00512",false,"MULTI_LABEL","NORMAL","\N",true
+"ENC-00513",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00514",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00515",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00516",false,"MULTI_LABEL","NORMAL","\N",true
+"ENC-00517",false,"AMBIGUOUS","NORMAL","No Transportation To Follow-Up",false
+"ENC-00518",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00519",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00520",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00521",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00522",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00523",false,"NEAR_NEIGHBOUR","NORMAL","Prescription Not Received At Pharmacy",false
+"ENC-00524",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00525",false,"NEAR_NEIGHBOUR","NORMAL","Unable To Afford Copay Or Visit",false
+"ENC-00526",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00527",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00528",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00529",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00530",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00531",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00532",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00533",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00534",false,"MULTI_LABEL","NORMAL","\N",true
+"ENC-00535",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00536",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00537",false,"NEAR_NEIGHBOUR","RAMBLING","Nausea Vomiting Not Post-Op",false
+"ENC-00538",false,"NEAR_NEIGHBOUR","NORMAL","Medication Cost Barrier",true
+"ENC-00539",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00540",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00541",false,"NEAR_NEIGHBOUR","RAMBLING","Surgical Site Pain Uncontrolled",false
+"ENC-00542",false,"NEAR_NEIGHBOUR","NORMAL","No Transportation To Follow-Up",false
+"ENC-00543",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00544",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00545",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00546",false,"MULTI_LABEL","NORMAL","\N",true
+"ENC-00547",false,"NEAR_NEIGHBOUR","NORMAL","No Transportation To Follow-Up",false
+"ENC-00548",false,"MULTI_LABEL","NORMAL","\N",true
+"ENC-00549",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00550",false,"AMBIGUOUS","NORMAL","Nausea Vomiting Not Post-Op",true
+"ENC-00551",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00552",false,"NEAR_NEIGHBOUR","NORMAL","Post-Op Nausea Vomiting",true
+"ENC-00553",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00554",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00555",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00556",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00557",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00558",false,"STRAIGHTFORWARD","TERSE","\N",true
+"ENC-00559",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00560",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00561",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00562",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00563",false,"AMBIGUOUS","NORMAL","Wound Care Instruction Unclear",false
+"ENC-00564",false,"GAP","RAMBLING","\N",false
+"ENC-00565",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00566",false,"NEAR_NEIGHBOUR","NORMAL","No Transportation To Follow-Up",false
+"ENC-00567",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00568",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00569",false,"NEAR_NEIGHBOUR","NORMAL","Surgical Site Pain Uncontrolled",false
+"ENC-00570",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00571",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00572",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00573",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00574",false,"STRAIGHTFORWARD","RAMBLING","\N",true
+"ENC-00575",false,"MULTI_LABEL","RAMBLING","\N",false
+"ENC-00576",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00577",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00578",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00579",false,"AMBIGUOUS","NORMAL","Wound Care Instruction Unclear",false
+"ENC-00580",false,"STRAIGHTFORWARD","NORMAL","\N",true
+"ENC-00581",false,"GAP","RAMBLING","\N",false
+"ENC-00582",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00583",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00584",false,"NEAR_NEIGHBOUR","RAMBLING","Post-Op Nausea Vomiting",false
+"ENC-00585",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00586",false,"NEAR_NEIGHBOUR","TERSE","No Transportation To Follow-Up",false
+"ENC-00587",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00588",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00589",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00590",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00591",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00592",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00593",false,"NEAR_NEIGHBOUR","TERSE","Post-Op Nausea Vomiting",false
+"ENC-00594",false,"MULTI_LABEL","RAMBLING","\N",false
+"ENC-00595",false,"NEAR_NEIGHBOUR","RAMBLING","Surgical Site Pain Uncontrolled",false
+"ENC-00596",false,"NEAR_NEIGHBOUR","NORMAL","No Transportation To Follow-Up",false
+"ENC-00597",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00598",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00599",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00600",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00601",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00602",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00603",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00604",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00605",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00606",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00607",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00608",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00609",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00610",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00611",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00612",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00613",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00614",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00615",false,"GAP","RAMBLING","\N",false
+"ENC-00616",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00617",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00618",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00619",false,"AMBIGUOUS","NORMAL","No Transportation To Follow-Up",false
+"ENC-00620",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00621",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00622",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00623",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00624",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00625",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00626",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00627",false,"NEAR_NEIGHBOUR","NORMAL","Abdominal Pain Not Surgical",false
+"ENC-00628",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00629",false,"GAP","TERSE","\N",false
+"ENC-00630",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00631",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00632",false,"GAP","TERSE","\N",false
+"ENC-00633",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00634",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00635",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00636",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00637",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00638",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00639",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00640",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00641",false,"GAP","NORMAL","\N",false
+"ENC-00642",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00643",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00644",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00645",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00646",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00647",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00648",false,"NEAR_NEIGHBOUR","TERSE","Medication Cost Barrier",false
+"ENC-00649",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00650",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00651",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00652",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00653",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00654",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00655",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00656",false,"AMBIGUOUS","NORMAL","No Transportation To Follow-Up",false
+"ENC-00657",false,"AMBIGUOUS","NORMAL","Prescription Not Received At Pharmacy",false
+"ENC-00658",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00659",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00660",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00661",false,"GAP","TERSE","\N",false
+"ENC-00662",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00663",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00664",false,"NEAR_NEIGHBOUR","TERSE","No Transportation To Follow-Up",false
+"ENC-00665",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00666",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00667",false,"AMBIGUOUS","NORMAL","Post-Op Nausea Vomiting",false
+"ENC-00668",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00669",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00670",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00671",false,"NEAR_NEIGHBOUR","TERSE","Prescription Not Received At Pharmacy",false
+"ENC-00672",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00673",false,"NEAR_NEIGHBOUR","NORMAL","Abdominal Pain Not Surgical",false
+"ENC-00674",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00675",false,"AMBIGUOUS","NORMAL","No Transportation To Follow-Up",false
+"ENC-00676",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00677",false,"NEAR_NEIGHBOUR","NORMAL","Medication Not Started",false
+"ENC-00678",false,"AMBIGUOUS","NORMAL","Surgical Site Pain Uncontrolled",false
+"ENC-00679",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00680",false,"AMBIGUOUS","NORMAL","Surgical Site Pain Uncontrolled",false
+"ENC-00681",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00682",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00683",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00684",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00685",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00686",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00687",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00688",false,"NEAR_NEIGHBOUR","NORMAL","No Transportation To Follow-Up",false
+"ENC-00689",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00690",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00691",false,"AMBIGUOUS","RAMBLING","Abdominal Pain Not Surgical",false
+"ENC-00692",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00693",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00694",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00695",false,"NEAR_NEIGHBOUR","NORMAL","Unable To Afford Copay Or Visit",false
+"ENC-00696",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00697",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00698",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00699",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00700",false,"NEAR_NEIGHBOUR","RAMBLING","Wound Care Service Gap",false
+"ENC-00701",false,"GAP","NORMAL","\N",false
+"ENC-00702",false,"GAP","RAMBLING","\N",false
+"ENC-00703",false,"GAP","TERSE","\N",false
+"ENC-00704",false,"MULTI_LABEL","TERSE","\N",false
+"ENC-00705",false,"NEAR_NEIGHBOUR","RAMBLING","Surgical Site Pain Uncontrolled",false
+"ENC-00706",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00707",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00708",false,"AMBIGUOUS","NORMAL","No Transportation To Follow-Up",false
+"ENC-00709",false,"NEAR_NEIGHBOUR","NORMAL","Medication Not Started",false
+"ENC-00710",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00711",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00712",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00713",false,"GAP","NORMAL","\N",false
+"ENC-00714",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00715",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00716",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00717",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00718",false,"NEAR_NEIGHBOUR","RAMBLING","Nausea Vomiting Not Post-Op",false
+"ENC-00719",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00720",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00721",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00722",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00723",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00724",false,"NEAR_NEIGHBOUR","NORMAL","No Transportation To Follow-Up",false
+"ENC-00725",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00726",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00727",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00728",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00729",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00730",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00731",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00732",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00733",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00734",false,"NEAR_NEIGHBOUR","NORMAL","Surgical Site Pain Uncontrolled",false
+"ENC-00735",false,"NEAR_NEIGHBOUR","RAMBLING","Surgical Site Pain Uncontrolled",false
+"ENC-00736",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00737",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00738",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00739",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00740",false,"GAP","TERSE","\N",false
+"ENC-00741",false,"AMBIGUOUS","NORMAL","Post-Op Nausea Vomiting",false
+"ENC-00742",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00743",false,"MULTI_LABEL","TERSE","\N",false
+"ENC-00744",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00745",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00746",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00747",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00748",false,"NEAR_NEIGHBOUR","RAMBLING","Medication Not Started",false
+"ENC-00749",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00750",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00751",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00752",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00753",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00754",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00755",false,"AMBIGUOUS","TERSE","Medication Cost Barrier",false
+"ENC-00756",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00757",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00758",false,"GAP","TERSE","\N",false
+"ENC-00759",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00760",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00761",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00762",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00763",false,"NEAR_NEIGHBOUR","RAMBLING","No Transportation To Follow-Up",false
+"ENC-00764",false,"NEAR_NEIGHBOUR","NORMAL","Surgical Site Pain Uncontrolled",false
+"ENC-00765",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00766",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00767",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00768",false,"GAP","NORMAL","\N",false
+"ENC-00769",false,"GAP","RAMBLING","\N",false
+"ENC-00770",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00771",false,"AMBIGUOUS","NORMAL","Nausea Vomiting Not Post-Op",false
+"ENC-00772",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00773",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00774",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00775",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00776",false,"NEAR_NEIGHBOUR","NORMAL","Nausea Vomiting Not Post-Op",false
+"ENC-00777",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00778",false,"GAP","NORMAL","\N",false
+"ENC-00779",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00780",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00781",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00782",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00783",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00784",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00785",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00786",false,"NEAR_NEIGHBOUR","RAMBLING","Wound Care Service Gap",false
+"ENC-00787",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00788",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00789",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00790",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00791",false,"GAP","NORMAL","\N",false
+"ENC-00792",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00793",false,"NEAR_NEIGHBOUR","NORMAL","Unable To Afford Copay Or Visit",false
+"ENC-00794",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00795",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00796",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00797",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00798",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00799",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00800",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00801",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00802",false,"NEAR_NEIGHBOUR","RAMBLING","Prescription Not Received At Pharmacy",false
+"ENC-00803",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00804",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00805",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00806",false,"NEAR_NEIGHBOUR","NORMAL","Wound Care Service Gap",false
+"ENC-00807",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00808",false,"AMBIGUOUS","RAMBLING","Surgical Site Pain Uncontrolled",false
+"ENC-00809",false,"NEAR_NEIGHBOUR","TERSE","Medication Cost Barrier",false
+"ENC-00810",false,"GAP","NORMAL","\N",false
+"ENC-00811",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00812",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00813",false,"NEAR_NEIGHBOUR","NORMAL","Abdominal Pain Not Surgical",false
+"ENC-00814",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00815",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00816",false,"NEAR_NEIGHBOUR","NORMAL","Prescription Not Received At Pharmacy",false
+"ENC-00817",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00818",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00819",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00820",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00821",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00822",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00823",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00824",false,"NEAR_NEIGHBOUR","RAMBLING","Wound Care Service Gap",false
+"ENC-00825",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00826",false,"GAP","RAMBLING","\N",false
+"ENC-00827",false,"MULTI_LABEL","TERSE","\N",false
+"ENC-00828",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00829",false,"NEAR_NEIGHBOUR","NORMAL","Surgical Site Pain Uncontrolled",false
+"ENC-00830",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00831",false,"NEAR_NEIGHBOUR","RAMBLING","Abdominal Pain Not Surgical",false
+"ENC-00832",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00833",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00834",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00835",false,"MULTI_LABEL","TERSE","\N",false
+"ENC-00836",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00837",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00838",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00839",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00840",false,"GAP","RAMBLING","\N",false
+"ENC-00841",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00842",false,"NEAR_NEIGHBOUR","NORMAL","Medication Not Started",false
+"ENC-00843",false,"AMBIGUOUS","RAMBLING","Surgical Site Pain Uncontrolled",false
+"ENC-00844",false,"AMBIGUOUS","NORMAL","Post-Op Nausea Vomiting",false
+"ENC-00845",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00846",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00847",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00848",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00849",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00850",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00851",false,"AMBIGUOUS","NORMAL","Surgical Site Pain Uncontrolled",false
+"ENC-00852",false,"NEAR_NEIGHBOUR","RAMBLING","Surgical Site Pain Uncontrolled",false
+"ENC-00853",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00854",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00855",false,"GAP","NORMAL","\N",false
+"ENC-00856",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00857",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00858",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00859",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00860",false,"NEAR_NEIGHBOUR","RAMBLING","Abdominal Pain Not Surgical",false
+"ENC-00861",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00862",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00863",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00864",false,"GAP","TERSE","\N",false
+"ENC-00865",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00866",false,"NEAR_NEIGHBOUR","RAMBLING","Medication Cost Barrier",false
+"ENC-00867",false,"AMBIGUOUS","NORMAL","Nausea Vomiting Not Post-Op",false
+"ENC-00868",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00869",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00870",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00871",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00872",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00873",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00874",false,"NEAR_NEIGHBOUR","RAMBLING","Prescription Not Received At Pharmacy",false
+"ENC-00875",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00876",false,"NEAR_NEIGHBOUR","RAMBLING","No Transportation To Follow-Up",false
+"ENC-00877",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00878",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00879",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00880",false,"NEAR_NEIGHBOUR","NORMAL","Wound Care Instruction Unclear",false
+"ENC-00881",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00882",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00883",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00884",false,"GAP","TERSE","\N",false
+"ENC-00885",false,"NEAR_NEIGHBOUR","NORMAL","Surgical Site Pain Uncontrolled",false
+"ENC-00886",false,"AMBIGUOUS","NORMAL","Prescription Not Received At Pharmacy",false
+"ENC-00887",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00888",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00889",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00890",false,"NEAR_NEIGHBOUR","NORMAL","Post-Op Nausea Vomiting",false
+"ENC-00891",false,"GAP","TERSE","\N",false
+"ENC-00892",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00893",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00894",false,"GAP","NORMAL","\N",false
+"ENC-00895",false,"NEAR_NEIGHBOUR","NORMAL","Medication Not Started",false
+"ENC-00896",false,"NEAR_NEIGHBOUR","NORMAL","Unable To Afford Copay Or Visit",false
+"ENC-00897",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00898",false,"NEAR_NEIGHBOUR","NORMAL","Post-Op Nausea Vomiting",false
+"ENC-00899",false,"NEAR_NEIGHBOUR","NORMAL","Nausea Vomiting Not Post-Op",false
+"ENC-00900",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00901",false,"NEAR_NEIGHBOUR","NORMAL","Wound Care Service Gap",false
+"ENC-00902",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00903",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00904",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00905",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00906",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00907",false,"GAP","TERSE","\N",false
+"ENC-00908",false,"AMBIGUOUS","NORMAL","No Transportation To Follow-Up",false
+"ENC-00909",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00910",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00911",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00912",false,"MULTI_LABEL","TERSE","\N",false
+"ENC-00913",false,"AMBIGUOUS","TERSE","Surgical Site Pain Uncontrolled",false
+"ENC-00914",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00915",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00916",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00917",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00918",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00919",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00920",false,"GAP","NORMAL","\N",false
+"ENC-00921",false,"AMBIGUOUS","NORMAL","Medication Not Started",false
+"ENC-00922",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00923",false,"MULTI_LABEL","TERSE","\N",false
+"ENC-00924",false,"AMBIGUOUS","NORMAL","Wound Care Instruction Unclear",false
+"ENC-00925",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00926",false,"NEAR_NEIGHBOUR","NORMAL","Unable To Afford Copay Or Visit",false
+"ENC-00927",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00928",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00929",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00930",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00931",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00932",false,"NEAR_NEIGHBOUR","NORMAL","Surgical Site Pain Uncontrolled",false
+"ENC-00933",false,"MULTI_LABEL","RAMBLING","\N",false
+"ENC-00934",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00935",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00936",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00937",false,"NEAR_NEIGHBOUR","NORMAL","Wound Care Instruction Unclear",false
+"ENC-00938",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00939",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00940",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00941",false,"NEAR_NEIGHBOUR","NORMAL","Medication Not Started",false
+"ENC-00942",false,"GAP","RAMBLING","\N",false
+"ENC-00943",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00944",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00945",false,"MULTI_LABEL","RAMBLING","\N",false
+"ENC-00946",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00947",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00948",false,"NEAR_NEIGHBOUR","NORMAL","Unable To Afford Copay Or Visit",false
+"ENC-00949",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00950",false,"GAP","TERSE","\N",false
+"ENC-00951",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00952",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00953",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00954",false,"MULTI_LABEL","NORMAL","\N",false
+"ENC-00955",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00956",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00957",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00958",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00959",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00960",false,"GAP","RAMBLING","\N",false
+"ENC-00961",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00962",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00963",false,"MULTI_LABEL","RAMBLING","\N",false
+"ENC-00964",false,"NEAR_NEIGHBOUR","NORMAL","Surgical Site Pain Uncontrolled",false
+"ENC-00965",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00966",false,"AMBIGUOUS","NORMAL","Prescription Not Received At Pharmacy",false
+"ENC-00967",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00968",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00969",false,"NEAR_NEIGHBOUR","NORMAL","Nausea Vomiting Not Post-Op",false
+"ENC-00970",false,"NEAR_NEIGHBOUR","NORMAL","Wound Care Instruction Unclear",false
+"ENC-00971",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00972",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00973",false,"NEAR_NEIGHBOUR","NORMAL","Prescription Not Received At Pharmacy",false
+"ENC-00974",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00975",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00976",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00977",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00978",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00979",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00980",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00981",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00982",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00983",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00984",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00985",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00986",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00987",false,"MULTI_LABEL","TERSE","\N",false
+"ENC-00988",false,"NEAR_NEIGHBOUR","TERSE","Surgical Site Pain Uncontrolled",false
+"ENC-00989",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00990",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00991",false,"STRAIGHTFORWARD","NORMAL","\N",false
+"ENC-00992",false,"AMBIGUOUS","TERSE","Medication Cost Barrier",false
+"ENC-00993",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00994",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00995",false,"STRAIGHTFORWARD","TERSE","\N",false
+"ENC-00996",false,"STRAIGHTFORWARD","RAMBLING","\N",false
+"ENC-00997",false,"NEAR_NEIGHBOUR","NORMAL","Surgical Site Pain Uncontrolled",false
+"ENC-00998",false,"NEAR_NEIGHBOUR","RAMBLING","Wound Care Service Gap",false
+"ENC-00999",false,"GAP","NORMAL","\N",false
+"ENC-01000",false,"STRAIGHTFORWARD","NORMAL","\N",false
