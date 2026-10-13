@@ -196,5 +196,9 @@ The build uses `PAN_DEMO_DB.PIPELINE` and `PAN_DEMO_DB.SYNTHETIC_DATA` with an X
   `demo/import_demo_data.sql` and `demo/setup_from_export.sh` too (both use full names).
 - Find-and-replace `PAN_DEMO_WH`. The dynamic table, task and alert need a literal warehouse name,
   and `demo/setup_from_export.sh` runs the build on it.
+- For the web app, set `database` and `query_warehouse` in `webapp/app.yml`, and `DATABASE` and
+  `WAREHOUSE` at the top of `demo/setup_lib.py` if you deploy from the notebook. When running the
+  app locally, `PAN_SCHEMA`, `PAN_TEST_DATA_SCHEMA` and `PAN_WAREHOUSE` in `webapp/.env.local`
+  override the defaults (see [webapp/README.md](../webapp/README.md#configuration)).
 
 AI token cost attribution works on any warehouse, since it's keyed on query ID.

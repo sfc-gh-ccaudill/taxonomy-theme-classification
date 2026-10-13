@@ -136,13 +136,15 @@ CALL CLASSIFY_BATCH('BACKLOG');
 
 ### Explore it
 
-- **Web app:** `webapp/` walks through the whole flow in five pages. See
-  [webapp/README.md](webapp/README.md) for setup and a demo script.
+- **Web app:** `webapp/` walks through the whole flow in five pages, starting with the corpus
+  before and after classification. See [webapp/README.md](webapp/README.md) for setup and a demo
+  script.
 - **Notebook:** `demo/pan_lines_walkthrough.ipynb` takes the classification step apart on a small
   sample, one step at a time.
 
 Between demo run-throughs, reset with `demo/reset_webapp.sql` (production config and gold labels
-kept, runs cleared) or `demo/reset_demo.sql` (back to an unclassified corpus). On an account built
+kept, runs cleared) or `demo/reset_demo.sql` (back to an unclassified corpus with no taxonomy, to
+regenerate it live). On an account built
 with Option A, rerunning `demo/setup_from_export.sh` also works.
 
 ## Documentation
@@ -159,3 +161,16 @@ with Option A, rerunning `demo/setup_from_export.sh` also works.
 - The included notes are synthetic and contain no PHI. Cortex runs inside the Snowflake account.
 - Model output varies slightly between runs, so measured numbers can move a point or so on a
   re-run.
+
+## Disclaimer
+
+Copyright (c) 2026 Snowflake Inc. All rights reserved.
+
+This is sample code provided for reference purposes only. It is not part of the Snowflake Service
+and is not covered by Snowflake support or any warranties.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

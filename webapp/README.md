@@ -261,7 +261,7 @@ Things to know about the deployed app:
 ## Verifying
 
 ```bash
-./smoke.sh                     # all 5 pages, 8 API routes, allowlist rejection, log scan
+./smoke.sh                     # all 5 pages, 10 API routes, allowlist rejection, log scan
 npx tsc --noEmit               # npm run build skips type checking
 npm test                       # vitest, template's example tests
 ```

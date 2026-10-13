@@ -43,6 +43,14 @@
       "producerNotes": "Card numbers are the 2026-10-09 verification on PAN_DEMO_DB.PIPELINE: haiku_enum_v1/v001 0.830, haiku_v2_tax_v001 0.840 PASS, haiku_v1_tax_v002 (hand-edited fork of v001 with Transportation Barrier To Care added) 0.885 PASS, unplaceable gold 9 -> 1, Access 0.750 -> 0.889; rollback to v001 FAIL on Access, promoted with override. ~1.07 credits per 200-encounter gold run from RUN_COST. These differ from s-results, which is the loop-generated 79-subtheme revision." },
     { "id": "s-results", "title": "Measured results", "dataSources": [{ "type": "file", "path": "docs/results.md" }],
       "producerNotes": "Numbers are the 2026-10-09 run on PAN_DEMO_DB.PIPELINE, 200 gold encounters. Segment bars from EVAL_SEGMENT_DETAIL; the Gap scenario bar is test data from PAN_DEMO_DB.SYNTHETIC_DATA.TEST_SCENARIO_SCORECARD. Bar geometry: y = 330 - v*300. Re-running moves them." },
+    { "id": "s-llm-cost", "title": "LLM cost monitoring on Snowflake (platform)",
+      "dataSources": [
+        { "type": "doc", "url": "https://docs.snowflake.com/en/user-guide/snowflake-cortex/ai-func-cost-management", "notes": "usage view, ~5 min latency, alert, per-user limits, runaway-query cancel" },
+        { "type": "doc", "url": "https://docs.snowflake.com/en/user-guide/budgets/budget-shared-resources", "notes": "budgets for AI features scoped by user tags" },
+        { "type": "doc", "url": "https://docs.snowflake.com/en/user-guide/budgets/per-user-quotas", "notes": "quota methods, block enforcement, scope caveat" },
+        { "type": "query", "warehouse": "PAN_DEMO_WH", "sql": "SELECT DATE_TRUNC('day', start_time) AS day, function_name, model_name, SUM(credits) AS credits, COUNT(DISTINCT query_id) AS queries FROM SNOWFLAKE.ACCOUNT_USAGE.CORTEX_AI_FUNCTIONS_USAGE_HISTORY WHERE start_time >= DATEADD(day, -30, CURRENT_TIMESTAMP()) GROUP BY 1, 2, 3 ORDER BY 1 DESC, 4 DESC" }
+      ],
+      "producerNotes": "Status chips checked 2026-10-13 against release notes: AI Functions cost management GA Mar 2 2026; budgets for AI features GA Apr 10 2026; per-user quotas GA in 10.29 (Aug 2026), weekly limits GA Sep 16 2026; anomaly monitors preview in 10.29. The usage query was executed in the demo account; the quota snippet uses documented method signatures and was not run (it would create a live quota). DESCRIBE VIEW confirmed CORTEX_AI_FUNCTIONS_USAGE_HISTORY columns: START_TIME, END_TIME, FUNCTION_NAME, MODEL_NAME, QUERY_ID, WAREHOUSE_ID, ROLE_NAMES, QUERY_TAG, USER_ID, METRICS, CREDITS, IS_COMPLETED." },
     { "id": "s-cost", "title": "Cost monitoring", "dataSources": [{ "type": "file", "path": "docs/results.md" }, { "type": "file", "path": "sql/04_evaluation.sql" }] },
     { "id": "s-app", "title": "The app", "dataSources": [{ "type": "file", "path": "webapp/README.md" }, { "type": "file", "path": "webapp/lib/queries.ts" }] },
     { "id": "s-next", "title": "Demo vs production" },
@@ -225,6 +233,10 @@
   .chip.c3 { background: var(--green-50); color: var(--green); border: 1px solid #BFE3D0; }
   .pill.c2 { background: var(--orange-50); color: #B26A08; border-color: #F6D3A3; }
   .pill.c3 { background: var(--green-50); color: var(--green); border-color: #BFE3D0; }
+  .chip.ga { background: var(--green-50); color: var(--green); border: 1px solid #BFE3D0; }
+  .chip.pv { background: var(--orange-50); color: #B26A08; border: 1px solid #F6D3A3; }
+  #s-llm-cost .note-i b { font-size: 17px; margin-bottom: 3px; }
+  #s-llm-cost .note-i span { font-size: 14.5px; line-height: 1.42; }
 
   /* Section dividers */
   .divider { justify-content: center; padding-bottom: 150px; }
@@ -544,7 +556,7 @@
     </div>
     <p class="callout" style="margin-top:12px">One schema holds it all: 15 tables, a dynamic table, 10 views, 15 procedures, a function, a stream, a task and an alert. Nothing is copied out, synced back or secured twice.</p>
   </div>
-  <aside class="notes">This is the "why Snowflake" slide. Read it bottom up. The notes land in tables. A dynamic table rolls notes up to encounters incrementally, a stream picks up what's new, and a task fires only when there is something to do. The model call is AI_COMPLETE, a SQL function, and we use models from Anthropic and OpenAI through it without managing keys or SDKs. Evaluation is views over the labels, plus one alert. The registry and the rules that protect production are tables and stored procedures, so the app and a SQL user hit exactly the same guardrails. The app is the only piece not deployed yet; it's built on the Snowflake App Runtime template so it can run as an application service next to the data. The point for the architecture: every layer is a feature of the same platform, governed by the same roles, so there's no glue to build and nothing to keep in sync.</aside>
+  <aside class="notes">This is the "why Snowflake" slide. Read it bottom up. The notes land in tables. A dynamic table rolls notes up to encounters incrementally, a stream picks up what's new, and a task fires only when there is something to do. The model call is AI_COMPLETE, a SQL function, and we use models from Anthropic and OpenAI through it without managing keys or SDKs. Evaluation is views over the labels, plus one alert. The registry and the rules that protect production are tables and stored procedures, so the app and a SQL user hit exactly the same guardrails. The app runs on Snowflake App Runtime as an application service, next to the data. The point for the architecture: every layer is a feature of the same platform, governed by the same roles, so there's no glue to build and nothing to keep in sync.</aside>
   <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
 </section>
 
@@ -1271,6 +1283,41 @@ response_format =&gt; {
   <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
 </section>
 
+<!-- ============================== 11b. LLM COST MONITORING (platform) ============================== -->
+<section class="slide" id="s-llm-cost" data-sec="3">
+  <p class="kicker">3 &middot; Evaluation and operations &middot; LLM cost monitoring</p>
+  <h2>Every LLM call is metered in SQL you can query, alert on and cap</h2>
+  <div class="body" style="display:grid;grid-template-columns:1fr 470px;gap:36px">
+    <div class="notes-list" style="justify-content:center;gap:14px">
+      <div class="note-i"><span class="n">1</span><div><b>See it <span class="chip ga">GA</span></b><span><code>ACCOUNT_USAGE.CORTEX_AI_FUNCTIONS_USAGE_HISTORY</code>: one row per query, function, model and hour, with credits, input and output tokens, user, roles, warehouse and query tag. Lands in about 5 minutes.</span></div></div>
+      <div class="note-i"><span class="n">2</span><div><b>Attribute it <span class="chip ga">GA</span></b><span>Tag users (<code>ALTER USER ... SET TAG cost_center</code>) to roll AI spend up by team, or set <code>QUERY_TAG</code> per project. A pipeline can also keep each run's query id, which is what the next slide does.</span></div></div>
+      <div class="note-i"><span class="n">3</span><div><b>Alert on it <span class="chip ga">GA</span> <span class="chip pv">Anomalies: preview</span></b><span>Budgets for AI features notify at a threshold of a monthly limit, scoped to tagged users, and can call a procedure. Anomaly monitors flag a spike within a tag's scope. Or write your own alert over the usage view.</span></div></div>
+      <div class="note-i"><span class="n">4</span><div><b>Cap it <span class="chip ga">GA</span></b><span>Per-user quotas set daily, weekly or monthly AI credit limits and can block a user at the limit, released when the cycle resets. A task can also cancel a single runaway query.</span></div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;justify-content:center">
+      <pre class="code"><i>-- Daily AI credits by function and model</i>
+<span class="k">SELECT</span> DATE_TRUNC(<em>'day'</em>, start_time) <span class="k">AS</span> day,
+       function_name, model_name,
+       <b>SUM(credits)</b> <span class="k">AS</span> credits,
+       COUNT(<span class="k">DISTINCT</span> query_id) <span class="k">AS</span> queries
+<span class="k">FROM</span> SNOWFLAKE.ACCOUNT_USAGE
+     .CORTEX_AI_FUNCTIONS_USAGE_HISTORY
+<span class="k">WHERE</span> start_time &gt;= DATEADD(day, -30, CURRENT_TIMESTAMP())
+<span class="k">GROUP BY</span> 1, 2, 3 <span class="k">ORDER BY</span> 1 <span class="k">DESC</span>, 4 <span class="k">DESC</span>;</pre>
+      <pre class="code"><i>-- A per-user AI quota that blocks at the limit</i>
+<span class="k">CREATE</span> SNOWFLAKE.CORE.QUOTA ai_quota();
+<span class="k">CALL</span> ai_quota!ADD_SHARED_RESOURCE(<em>'AI FUNCTION'</em>);
+<span class="k">CALL</span> ai_quota!SET_PER_USER_LIMIT(<b>50</b>, <em>'DAILY'</em>);
+<span class="k">CALL</span> ai_quota!ADD_NOTIFICATION_THRESHOLD(
+       <b>80</b>, <em>'PROJECTED'</em>, TRUE, <em>'DAILY'</em>);
+<span class="k">CALL</span> ai_quota!SET_BLOCK_ENFORCEMENT_ENABLED(TRUE, TRUE);</pre>
+      <div class="card blue" style="padding:12px 16px"><p>Budgets and quotas measure only what's in their scope. A quota with no <code>ADD_SHARED_RESOURCE</code> counts nothing, and enforcement runs within minutes, not per call, so one large batch can overshoot the limit.</p></div>
+    </div>
+  </div>
+  <aside class="notes">Before the pipeline's own numbers, the platform answer to "how do we keep LLM spend under control". Every AI function call lands in an Account Usage view within about five minutes, one row per query, function, model and hour, with credits, input and output tokens, and who ran it: user, roles, warehouse and query tag. So monitoring is a query, and the one on the right is the daily breakdown by model. Attribution: tag users with a cost center and budgets and quotas roll spend up by team; set a query tag per project; or, like this pipeline, capture each run's query id and join on it. Alerting: budgets for AI features have been GA since April. Give one a monthly limit, scope it to tagged users, and it emails at a threshold or calls a procedure. Anomaly monitors scoped by tag are in preview. Hard limits: per-user quotas went GA in August. Daily, weekly or monthly AI credit caps, and Snowflake can block the user at the limit and release them when the cycle resets, with no code. For a single runaway query, a documented task pattern cancels it. Two caveats I always mention: a budget or quota only measures what you add to its scope, and enforcement runs within minutes, not per call, so one big batch can go over before the block lands. Size the limit with that in mind. The next slide shows how this pipeline measures cost per run.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
 <!-- ============================== 12. COST ============================== -->
 <section class="slide" id="s-cost" data-sec="3">
   <p class="kicker">3 &middot; Evaluation and operations &middot; cost monitoring</p>
@@ -1365,9 +1412,9 @@ response_format =&gt; {
       <path class="e blue" d="M301,116 L399,116"/><path class="e orange" d="M301,280 L399,280"/>
       <path class="e blue" d="M691,116 L789,116"/><path class="e orange" d="M691,250 L789,250"/>
     </svg>
-    <p class="callout" style="margin-top:6px">No INSERT, UPDATE or DELETE anywhere in the app. Runs locally against your Snowflake account; it's scaffolded from the Snowflake App Runtime template, so it can deploy as an APPLICATION SERVICE without a rewrite. Not deployed yet.</p>
+    <p class="callout" style="margin-top:6px">No INSERT, UPDATE or DELETE anywhere in the app. Deploys as an APPLICATION SERVICE on Snowflake App Runtime, next to the data, with <code>snow app deploy</code> or the setup notebook. Also runs locally against your account for development.</p>
   </div>
-  <aside class="notes">The pitch here is "a thin UI over governed Snowflake objects", so the app deliberately shows its sources on every page. The pages follow the lifecycle: build a config, where you edit the taxonomy and prompt on one page, then evaluate and promote, run production, then monitor and revise, which loops back to page 2. Two rules the code enforces: no SQL in components, and all writes go through one endpoint that only calls allowlisted procedures. So the app can't promote without the gate, can't run a candidate in production, and an override reason it collects lands in the same PROMOTION_LOG a SQL user would write to. When a guardrail fires, like locking a draft with a blank label or scoring a partial run, the app shows it as information instead of crashing. If we deploy it, we'd want caller's rights on the read paths so it respects each user's grants.</aside>
+  <aside class="notes">The pitch here is "a thin UI over governed Snowflake objects", so the app deliberately shows its sources on every page. The pages follow the lifecycle: build a config, where you edit the taxonomy and prompt on one page, then evaluate and promote, run production, then monitor and revise, which loops back to page 2. Two rules the code enforces: no SQL in components, and all writes go through one endpoint that only calls allowlisted procedures. So the app can't promote without the gate, can't run a candidate in production, and an override reason it collects lands in the same PROMOTION_LOG a SQL user would write to. When a guardrail fires, like locking a draft with a blank label or scoring a partial run, the app shows it as information instead of crashing. Deployed, it runs as the service's owning role, so for a shared app you'd want caller's rights on the read paths so it respects each user's grants.</aside>
   <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
 </section>
 
