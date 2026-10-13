@@ -27,6 +27,7 @@ import {
   Legend,
 } from "recharts"
 import { ChartTooltip } from "@/components/chart-utils"
+import { ClassifiedView } from "./_components/classified-view"
 
 type Row = Record<string, any>
 
@@ -53,7 +54,50 @@ const SCENARIO_NOTE: Record<string, string> = {
     "Written to be genuinely undecidable between two subthemes. Lower scores are expected by design.",
 }
 
+const VIEWS = [
+  { key: "before", label: "Before classification" },
+  { key: "after", label: "After classification" },
+] as const
+type View = (typeof VIEWS)[number]["key"]
+
+const DESCRIPTION: Record<View, string> = {
+  before:
+    "Free-text post-discharge nurse call notes, rolled up to one row per encounter. The totals and the note browser come from the pipeline's input tables: the notes, the gold-set list, and the design sample. The amber panels describe how this synthetic test data was built; production data would not have them.",
+  after:
+    "The same encounters after production runs: the champion's current labels per encounter, with confidence and the evidence it quoted from the note. Evaluation runs never appear here, so trying a candidate does not change what this shows.",
+}
+
 export default function ExplorePage() {
+  const [view, setView] = useState<View>("before")
+
+  return (
+    <div>
+      <PageHeader
+        title="Explore the corpus"
+        description={DESCRIPTION[view]}
+        objects={view === "before" ? SOURCES.explore : SOURCES.exploreClassified}
+      >
+        <div className="inline-flex rounded-md border border-input p-0.5">
+          {VIEWS.map((v) => (
+            <Button
+              key={v.key}
+              size="sm"
+              variant={view === v.key ? "default" : "ghost"}
+              className="h-7 text-xs px-3"
+              onClick={() => setView(v.key)}
+            >
+              {v.label}
+            </Button>
+          ))}
+        </div>
+      </PageHeader>
+
+      {view === "before" ? <BeforeView /> : <ClassifiedView />}
+    </div>
+  )
+}
+
+function BeforeView() {
   const [filter, setFilter] = useState("ALL")
   const [search, setSearch] = useState("")
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -80,12 +124,6 @@ export default function ExplorePage() {
 
   return (
     <div>
-      <PageHeader
-        title="Explore the corpus"
-        description="Free-text post-discharge nurse call notes, rolled up to one row per encounter. The totals and the note browser come from the pipeline's input tables: the notes, the gold-set list, and the design sample. The amber panels describe how this synthetic test data was built; production data would not have them."
-        objects={SOURCES.explore}
-      />
-
       {corpus.isLoading ? (
         <StatGrid>
           {[0, 1, 2, 3].map((i) => (

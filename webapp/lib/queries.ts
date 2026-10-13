@@ -115,6 +115,123 @@ export const reads = {
     }
   },
 
+  /* --- Page 1: Explore Data, after classification --- */
+
+  /**
+   * Headline numbers for the production output: the champion's latest labels
+   * per encounter (ENCOUNTER_THEME), against the whole corpus.
+   */
+  classifiedTotals: (): Sql => ({
+    sql: `WITH et AS (SELECT * FROM ${S}.ENCOUNTER_THEME),
+          per_enc AS (
+            SELECT encounter_id, COUNT(*) AS labels,
+                   COUNT_IF(subtheme = 'NO_GOOD_MATCH') AS ngm
+            FROM et GROUP BY encounter_id
+          )
+          SELECT
+            (SELECT COUNT(*) FROM ${S}.ENCOUNTER_PREP)           AS encounters,
+            (SELECT COUNT(*) FROM per_enc)                        AS classified,
+            (SELECT COUNT(*) FROM et)                             AS labels,
+            (SELECT COUNT_IF(labels > 1) FROM per_enc)            AS multi_label,
+            (SELECT COUNT_IF(ngm > 0) FROM per_enc)               AS no_good_match,
+            (SELECT COUNT_IF(confidence = 'HIGH') FROM et)        AS high_conf,
+            (SELECT COUNT_IF(confidence = 'LOW') FROM et)         AS low_conf,
+            (SELECT COUNT(DISTINCT subtheme) FROM et
+               WHERE subtheme <> 'NO_GOOD_MATCH')                 AS subthemes_used,
+            (SELECT LISTAGG(DISTINCT config_name, ', ') FROM et)  AS configs,
+            (SELECT LISTAGG(DISTINCT taxonomy_version_id, ', ') FROM et) AS taxonomies,
+            (SELECT MAX(classified_at) FROM et)                   AS last_classified_at`,
+  }),
+
+  /**
+   * Encounters per category > theme > subtheme in the production output. An
+   * encounter counts once per distinct subtheme it carries, so multi-label
+   * encounters appear under each of their labels. NO_GOOD_MATCH has NULL
+   * category and theme.
+   */
+  classifiedDistribution: (): Sql => ({
+    sql: `SELECT COALESCE(category, 'NO_GOOD_MATCH') AS category,
+                 COALESCE(theme, 'NO_GOOD_MATCH')    AS theme,
+                 subtheme,
+                 COUNT(DISTINCT encounter_id)        AS encounters,
+                 COUNT_IF(confidence = 'LOW')        AS low_conf
+          FROM ${S}.ENCOUNTER_THEME
+          GROUP BY ALL
+          ORDER BY encounters DESC, category, theme, subtheme`,
+  }),
+
+  /**
+   * Classified-encounter browser: one row per label, for at most `limit`
+   * encounters. An encounter matches when ANY of its labels matches the
+   * category / theme / subtheme / confidence filters. Category and theme
+   * 'NO_GOOD_MATCH' match the NULLs that label carries. The test_scenario
+   * column is TEST DATA and is badged as such.
+   */
+  classifiedEncounters: (opts: {
+    category?: string
+    theme?: string
+    subtheme?: string
+    confidence?: string
+    multiLabel?: boolean
+    search?: string
+    limit: number
+  }): Sql => {
+    const where: string[] = []
+    const binds: BindValue[] = []
+    if (opts.category) {
+      where.push("COALESCE(et.category, 'NO_GOOD_MATCH') = ?")
+      binds.push(opts.category)
+    }
+    if (opts.theme) {
+      where.push("COALESCE(et.theme, 'NO_GOOD_MATCH') = ?")
+      binds.push(opts.theme)
+    }
+    if (opts.subtheme) {
+      where.push("et.subtheme = ?")
+      binds.push(opts.subtheme)
+    }
+    if (opts.confidence) {
+      where.push("et.confidence = ?")
+      binds.push(opts.confidence)
+    }
+    if (opts.search) {
+      where.push("(p.full_text ILIKE ? OR et.encounter_id ILIKE ? OR et.evidence ILIKE ?)")
+      binds.push(`%${opts.search}%`, `%${opts.search}%`, `%${opts.search}%`)
+    }
+    binds.push(opts.limit)
+    return {
+      sql: `WITH matched AS (
+              SELECT et.encounter_id
+              FROM ${S}.ENCOUNTER_THEME et
+              JOIN ${S}.ENCOUNTER_PREP p ON p.encounter_id = et.encounter_id
+              ${where.length ? "WHERE " + where.join(" AND ") : ""}
+              GROUP BY et.encounter_id
+            ),
+            enc AS (
+              SELECT m.encounter_id
+              FROM matched m
+              JOIN ${S}.ENCOUNTER_THEME et ON et.encounter_id = m.encounter_id
+              GROUP BY m.encounter_id
+              ${opts.multiLabel ? "HAVING COUNT(*) > 1" : ""}
+              ORDER BY m.encounter_id
+              LIMIT ?
+            )
+            SELECT et.encounter_id, et.label_rank, et.category, et.theme, et.subtheme,
+                   et.confidence, et.evidence, et.config_name, et.taxonomy_version_id,
+                   et.run_id, et.classified_at,
+                   p.note_count, p.full_text, LENGTH(p.full_text) AS note_chars,
+                   g.encounter_id IS NOT NULL AS is_gold,
+                   ts.test_scenario
+            FROM enc
+            JOIN ${S}.ENCOUNTER_THEME       et ON et.encounter_id = enc.encounter_id
+            JOIN ${S}.ENCOUNTER_PREP        p  ON p.encounter_id  = enc.encounter_id
+            LEFT JOIN ${S}.GOLD_ENCOUNTER   g  ON g.encounter_id  = enc.encounter_id
+            LEFT JOIN ${T}.TEST_SCENARIO    ts ON ts.encounter_id = enc.encounter_id
+            ORDER BY et.encounter_id, et.label_rank`,
+      binds,
+    }
+  },
+
   /* --- Page 2: Config Builder (taxonomy) --- */
 
   /**
@@ -554,6 +671,7 @@ export const procs = {
  */
 export const SOURCES = {
   explore: ["NOTE_RAW", "ENCOUNTER_PREP", "GOLD_ENCOUNTER", "DISCOVERY_SAMPLE"],
+  exploreClassified: ["ENCOUNTER_THEME", "ENCOUNTER_PREP", "GOLD_ENCOUNTER"],
   build: [
     "TAXONOMY_VERSION",
     "TAXONOMY_NODE",

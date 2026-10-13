@@ -37,7 +37,9 @@ export default function RunPage() {
   const [selectedRun, setSelectedRun] = useState<string | null>(null)
   const [elapsed, setElapsed] = useState(0)
 
-  const action = useAction({ invalidate: [["runs"], ["production"], ["eval"]] })
+  const action = useAction({
+    invalidate: [["runs"], ["production"], ["eval"], ["classified"], ["corpus"]],
+  })
 
   // Poll run history. While a classification is in flight, poll fast so the
   // RUNNING row and its climbing duration are visible.

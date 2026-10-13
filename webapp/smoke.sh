@@ -11,7 +11,7 @@ for p in / /build /evaluate /run /monitor; do
 done
 
 echo "=== api ==="
-for a in /api/corpus /api/taxonomy "/api/taxonomy?rendered=v001" /api/runs "/api/runs?production=1" /api/eval /api/configs "/api/notes?limit=2"; do
+for a in /api/corpus /api/taxonomy "/api/taxonomy?rendered=v001" /api/runs "/api/runs?production=1" /api/eval /api/configs "/api/notes?limit=2" "/api/classified?summary=1" "/api/classified?limit=2"; do
   code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 180 "$BASE$a")
   printf "  %-24s %s\n" "$a" "$code"
 done

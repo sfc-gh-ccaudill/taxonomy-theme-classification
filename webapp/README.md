@@ -16,7 +16,7 @@ version) and exactly one config, the **champion**, runs in production.
 
 | # | Page | What it does | Backed by |
 |---|---|---|---|
-| 1 | Explore Data | Note browser, the encounter rollup, gold-set and design-sample membership, and (badged as test data) how the synthetic notes were made challenging | `NOTE_RAW`, `ENCOUNTER_PREP`, `GOLD_ENCOUNTER`, `DISCOVERY_SAMPLE` + test data `SYNTHETIC_DATA.TEST_SCENARIO` |
+| 1 | Explore Data | **Before classification:** note browser, the encounter rollup, gold-set and design-sample membership, and (badged as test data) how the synthetic notes were made challenging. **After classification:** the production output, i.e. the champion's current labels per encounter: totals, encounters by category (click to filter), top subthemes, and an encounter browser filterable by category, subtheme, confidence and multi-label, with each label's quoted evidence highlighted in the note | `NOTE_RAW`, `ENCOUNTER_PREP`, `GOLD_ENCOUNTER`, `DISCOVERY_SAMPLE`, `ENCOUNTER_THEME` + test data `SYNTHETIC_DATA.TEST_SCENARIO` |
 | 2 | Config Builder | The taxonomy is the workspace: version tabs (hover for lineage, bound configs and notes), propose a whole taxonomy from the sample, fork, a node editor for drafts (add, edit, rename, delete), lock, reject, changes vs the parent and the enum contract. Below it, a collapsed prompt and model section, then save the combination as a new config, preview it on 5 encounters (writing nothing) and hand it to evaluation | `TAXONOMY_VERSION`, `TAXONOMY_NODE`, `TAXONOMY_RENDERED`, `PROPOSE_TAXONOMY()`, `FORK_TAXONOMY()`, `EDIT_TAXONOMY_NODE()`, `LOCK_TAXONOMY()`, `REJECT_TAXONOMY()`, `TAXONOMY_DIFF()`, `CLASSIFIER_CONFIG`, `REGISTER_CONFIG()`, `PREVIEW_PROMPT()` |
 | 3 | Evaluate & Promote | Candidate leaderboard vs the champion; evaluate on gold (labels gold first for a new taxonomy); gate verdict and segment-by-segment comparison with the champion; promote, with a required reason if the gate failed; the promotion log | `EVALUATE_CONFIG()`, `EVAL_SCORECARD`, `EVAL_SEGMENT_DETAIL`, `EVAL_GATE`, `PROMOTE_CONFIG()`, `PROMOTION_LOG` |
 | 4 | Run Production | The champion and its backlog; bounded or full production runs, live progress, labels with evidence, out-of-taxonomy count, credits; score a full production run on gold | `RUN_CLASSIFIER()`, `PIPELINE_RUN`, `CLASSIFICATION`, `APP_RUN_STATUS`, `RUN_COST` |
@@ -46,14 +46,15 @@ notes don't have those tags, so nothing in the pipeline reads them.
 
 ```
 webapp/
-  app/page.tsx              1 Explore Data
+  app/page.tsx              1 Explore Data (before / after classification toggle)
+  app/_components/classified-view.tsx  the after-classification view over ENCOUNTER_THEME
   app/build/page.tsx        2 Config Builder (taxonomy workspace, prompt, save config)
   app/build/_components/taxonomy-editor.tsx  the searchable category > theme > subtheme editor
   app/evaluate/page.tsx     3 Evaluate & Promote
   app/run/page.tsx          4 Run Production
   app/monitor/page.tsx      5 Monitor & Revise
   app/api/action/route.ts    the only write endpoint (allowlisted)
-  app/api/{corpus,notes,taxonomy,runs,classifications,eval,configs}/route.ts
+  app/api/{corpus,notes,classified,taxonomy,runs,classifications,eval,configs}/route.ts
   components/eval-widgets.tsx  gate badge, segment comparison table (pages 3 and 5)
   lib/queries.ts            every SQL statement + the procedure allowlist
   lib/data.ts               query execution, timestamp normalization, refusal detection
@@ -144,6 +145,9 @@ form lets you type a different name.
    **Run 50** (~15s): zero out-of-taxonomy labels, measured credits. Select the run and **Score
    this run on gold**: refused, a 50-encounter run can't be scored without counting 150 gold
    encounters as wrong. Run all remaining if you want the full-corpus number (~55s, ~5 credits).
+   Then **Explore Data > After classification** shows what the business sees: labels per
+   encounter, the category mix, and each label's evidence highlighted in the note. Click a
+   category bar or a subtheme to filter; MULTI-LABEL and LOW narrow it further.
 6. **Evaluate & Promote: rollback.** Select `haiku_enum_v1` again. Its eval now FAILs against the
    new champion, naming the Access regression. The button wants a reason; type one and **Promote
    with override**. The promotion log shows both promotions and the override.
