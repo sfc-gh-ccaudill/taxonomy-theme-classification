@@ -20,6 +20,10 @@
     { "id": "s-today", "title": "The workflow: four steps", "dataSources": [{ "type": "file", "path": "docs/architecture.md" }] },
     { "id": "s-asks", "title": "What a production pipeline needs", "dataSources": [{ "type": "file", "path": "docs/architecture.md" }] },
     { "id": "s-arch", "title": "Overview: three sections, one schema", "dataSources": [{ "type": "file", "path": "sql/03_pipeline.sql" }] },
+    { "id": "s-stack", "title": "Every layer is a native Snowflake feature", "dataSources": [{ "type": "file", "path": "sql/00_setup.sql..sql/06_app_support.sql" }, { "type": "query", "warehouse": "PAN_DEMO_WH", "sql": "SELECT table_type, is_dynamic, COUNT(*) FROM PAN_DEMO_DB.INFORMATION_SCHEMA.TABLES WHERE table_schema='PIPELINE' AND is_temporary='NO' GROUP BY ALL; plus PROCEDURES, FUNCTIONS, SHOW STREAMS/TASKS/ALERTS IN SCHEMA PAN_DEMO_DB.PIPELINE" }],
+      "producerNotes": "Object counts queried 2026-10-13: 15 tables, 1 dynamic table, 10 views, 15 procedures, 1 function, 1 stream, 1 task, 1 alert. Models: CLASSIFIER_CONFIG uses claude-haiku-4-5 and claude-sonnet-4-5; taxonomy drafts and gold labels use openai-gpt-5.2." },
+    { "id": "s-call", "title": "The LLM call is one SQL statement", "dataSources": [{ "type": "file", "path": "sql/03_pipeline.sql", "notes": "RUN_CLASSIFIER, the EXECUTE IMMEDIATE around AI_COMPLETE" }, { "type": "file", "path": "sql/04_evaluation.sql", "notes": "RUN_COST" }],
+      "producerNotes": "Code is RUN_CLASSIFIER's dynamic statement with the model literal and STREAM-scope source resolved. CORTEX_ENABLED_CROSS_REGION = ANY_REGION in the demo account (SHOW PARAMETERS, 2026-10-13); residency wording follows docs.snowflake.com/en/user-guide/snowflake-cortex/cross-region-inference." },
     { "id": "s-sec1", "title": "Section 1: Classification" },
     { "id": "s-idea", "title": "The central idea: every label is a valid subtheme", "dataSources": [{ "type": "file", "path": "docs/architecture.md" }, { "type": "file", "path": "sql/02_taxonomy.sql" }] },
     { "id": "s-leaf", "title": "Leaf only, derive the rest, escape hatch" },
@@ -143,6 +147,31 @@
   .ans { background: var(--blue-50); border: 1px solid #BFE6F6; border-radius: 10px; padding: 10px 16px; height: 100%; }
   .ans .mono { font-size: 13px; font-weight: 600; }
   .ans div { font-size: 14px; color: var(--ink2); margin-top: 3px; line-height: 1.35; }
+
+  /* Snowflake stack (s-stack) and annotated call (s-call) */
+  .stack { display: grid; grid-template-columns: 178px 270px 330px 1fr; row-gap: 7px; align-items: stretch; }
+  .stack .hd { font: 700 10.5px -apple-system, system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 0 14px 2px; }
+  .stack .ly, .stack .ft, .stack .ob, .stack .wy { padding: 9px 14px; display: flex; flex-direction: column; justify-content: center; border-top: 1px solid var(--k); border-bottom: 1px solid var(--k); background: var(--f); }
+  .stack .ly { border-left: 4px solid var(--k); border-radius: 10px 0 0 10px; font-weight: 700; font-size: 14.5px; color: var(--ink); }
+  .stack .wy { border-right: 1px solid var(--k); border-radius: 0 10px 10px 0; font-size: 13px; color: var(--ink2); line-height: 1.32; }
+  .stack .ft { font-weight: 600; font-size: 14px; color: var(--navy); line-height: 1.25; }
+  .stack .ob { font-family: var(--mono); font-size: 11.5px; color: var(--navy); line-height: 1.45; }
+  .stack .ft small, .stack .ly small { display: block; font: 400 11.5px -apple-system, system-ui, sans-serif; color: var(--muted); margin-top: 2px; }
+  .stack .r-app  { --f: #FFFFFF;           --k: #B9C6D4; }
+  .stack .r-app { border-top-style: dashed; border-bottom-style: dashed; }
+  .stack .r-app.wy { border-right-style: dashed; }
+  .stack .r-gov  { --f: var(--orange-50); --k: #F6D3A3; }
+  .stack .r-eval { --f: var(--green-50);  --k: #BFE3D0; }
+  .stack .r-ai   { --f: var(--purple-50); --k: #D5C8EA; }
+  .stack .r-orch { --f: var(--blue-50);   --k: #BFE6F6; }
+  .stack .r-data { --f: var(--grey-50);   --k: #D8E1EA; }
+  .notes-list { display: flex; flex-direction: column; gap: 9px; }
+  .note-i { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; }
+  .note-i .n { width: 24px; height: 24px; border-radius: 50%; background: var(--navy); color: #fff; font: 700 12px -apple-system, system-ui, sans-serif; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .note-i b { display: block; font-size: 14.5px; color: var(--ink); margin-bottom: 1px; }
+  .note-i span { font-size: 13px; color: var(--ink2); line-height: 1.35; }
+  pre.code .k { color: var(--navy); font-weight: 700; }
+  pre.code .n { display: inline-block; min-width: 16px; height: 16px; line-height: 16px; border-radius: 50%; background: var(--navy); color: #fff; font: 700 10px -apple-system, system-ui, sans-serif; text-align: center; vertical-align: 1px; }
 
   /* Code */
   pre.code { font-family: var(--mono); font-size: 12px; line-height: 1.5; background: #F7F9FC; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin: 0; color: var(--ink2); white-space: pre; overflow: hidden; }
@@ -471,6 +500,88 @@
     </svg>
   </div>
   <aside class="notes">This is the map for the rest of the talk, one band per section. Top, classification: notes land in NOTE_RAW, a dynamic table rolls them up per encounter incrementally with no LLM, a stream captures what's new, and a task wakes every minute but only runs when the stream has data. One set-based AI_COMPLETE classifies the batch, always with the champion config. Middle, governance: author a taxonomy (an LLM draft, then edits by hand), lock it, bind it with a prompt and a model into a candidate config, and promote that only through the gate. Bottom, evaluation and operations: a candidate is scored on the gold set and gated against the champion before it can ship, then production gets alerted on, trended and costed. The gap queue on the right is fed by production output and drafts the next taxonomy. Everything here is in one schema.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== BUILT ON SNOWFLAKE: STACK ============================== -->
+<section class="slide" id="s-stack">
+  <p class="kicker">Built on Snowflake</p>
+  <h2>Every layer of the application is a native Snowflake feature</h2>
+  <p class="lede">Each layer is a feature already in the account, sharing one schema, one set of roles and one bill.</p>
+  <div class="body">
+    <div class="stack">
+      <div class="hd">Layer</div><div class="hd">Snowflake feature</div><div class="hd">In this build</div><div class="hd">Why it fits</div>
+
+      <div class="ly r-app">App<small>runs locally today</small></div>
+      <div class="ft r-app">Snowflake App Runtime<small>Next.js, deployable as an APPLICATION SERVICE</small></div>
+      <div class="ob r-app">webapp/ &middot; POST /api/action</div>
+      <div class="wy r-app">The UI deploys next to the data and calls the same procedures a SQL user would, through an allowlist.</div>
+
+      <div class="ly r-gov">Governance and registry</div>
+      <div class="ft r-gov">Tables + Snowflake Scripting procedures</div>
+      <div class="ob r-gov">TAXONOMY_VERSION &middot; CLASSIFIER_CONFIG<br>PROMOTION_LOG &middot; 15 procedures</div>
+      <div class="wy r-gov">Lock, gate and promote rules are enforced in the database, so every client meets the same guardrails.</div>
+
+      <div class="ly r-eval">Evaluation and monitoring</div>
+      <div class="ft r-eval">Views, a SQL table function, an alert</div>
+      <div class="ob r-eval">EVAL_SCORECARD &middot; EVAL_GATE<br>TAXONOMY_DIFF() &middot; QUALITY_REGRESSION_ALERT</div>
+      <div class="wy r-eval">Metrics are queries over the labels where they land. The alert watches the same gate that decides promotion.</div>
+
+      <div class="ly r-ai">AI inference</div>
+      <div class="ft r-ai">Cortex AI_COMPLETE<small>with structured outputs (response_format)</small></div>
+      <div class="ob r-ai">claude-haiku-4-5 &middot; claude-sonnet-4-5<br>openai-gpt-5.2</div>
+      <div class="wy r-ai">Models from more than one provider behind one SQL function. Changing model is a config row, not a new integration.</div>
+
+      <div class="ly r-orch">Orchestration</div>
+      <div class="ft r-orch">Dynamic table &rarr; stream &rarr; task</div>
+      <div class="ob r-orch">ENCOUNTER_PREP (incremental, 1 min lag)<br>ENCOUNTER_PREP_STREAM &middot; CLASSIFY_ENCOUNTERS</div>
+      <div class="wy r-orch">Declarative incremental rollup. The task only fires when the stream has new encounters.</div>
+
+      <div class="ly r-data">Data and cost</div>
+      <div class="ft r-data">Tables + ACCOUNT_USAGE</div>
+      <div class="ob r-data">NOTE_RAW &middot; CLASSIFICATION &middot; RUN_COST<br>&larr; CORTEX_AISQL_USAGE_HISTORY</div>
+      <div class="wy r-data">Notes, labels and measured credits per run sit side by side, so cost is one more join.</div>
+    </div>
+    <p class="callout" style="margin-top:12px">One schema holds it all: 15 tables, a dynamic table, 10 views, 15 procedures, a function, a stream, a task and an alert. Nothing is copied out, synced back or secured twice.</p>
+  </div>
+  <aside class="notes">This is the "why Snowflake" slide. Read it bottom up. The notes land in tables. A dynamic table rolls notes up to encounters incrementally, a stream picks up what's new, and a task fires only when there is something to do. The model call is AI_COMPLETE, a SQL function, and we use models from Anthropic and OpenAI through it without managing keys or SDKs. Evaluation is views over the labels, plus one alert. The registry and the rules that protect production are tables and stored procedures, so the app and a SQL user hit exactly the same guardrails. The app is the only piece not deployed yet; it's built on the Snowflake App Runtime template so it can run as an application service next to the data. The point for the architecture: every layer is a feature of the same platform, governed by the same roles, so there's no glue to build and nothing to keep in sync.</aside>
+  <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
+</section>
+
+<!-- ============================== BUILT ON SNOWFLAKE: THE CALL ============================== -->
+<section class="slide" id="s-call">
+  <p class="kicker">Built on Snowflake &middot; Cortex AI</p>
+  <h2>The LLM call is one SQL statement over the data</h2>
+  <p class="lede">Classification is an expression in a SELECT, not a service the data is shipped to. This is the call inside <span class="mono">RUN_CLASSIFIER()</span>, as it runs for new encounters.</p>
+  <div class="body" style="display:grid;grid-template-columns:600px 1fr;gap:32px">
+    <div style="display:flex;flex-direction:column;gap:12px">
+<pre class="code" style="font-size:12.5px;line-height:1.55"><span class="k">CREATE TEMPORARY TABLE</span> _cls <span class="k">AS</span>
+<span class="k">SELECT</span> src.encounter_id,
+  <b>AI_COMPLETE</b>(                                         <span class="n">1</span>
+    model  =&gt; 'claude-haiku-4-5',                      <span class="n">2</span>
+    prompt =&gt; REPLACE(REPLACE(x.prompt_template,
+                '{{TAXONOMY}}', x.taxonomy_text),
+                '{{NOTE}}', src.full_text),
+    model_parameters =&gt; {'temperature': 0},
+    response_format  =&gt; x.response_format,             <span class="n">3</span>
+    return_error_details =&gt; TRUE) <span class="k">AS</span> r                 <span class="n">4</span>
+<span class="k">FROM</span> ENCOUNTER_PREP_STREAM src                         <span class="n">5</span>
+<span class="k">CROSS JOIN</span> _cls_ctx x   <i>-- config + rendered taxonomy</i>
+<span class="k">WHERE</span> src.METADATA$ACTION = 'INSERT';
+
+v_query_id := SQLID;  <i>-- &rarr; PIPELINE_RUN &rarr; RUN_COST</i>     <span class="n">6</span></pre>
+      <p class="callout" style="margin-top:0;font-size:13.5px">The notes stay in Snowflake. They're stored only in the account's region, and where inference may run is one account parameter, <span class="mono">CORTEX_ENABLED_CROSS_REGION</span> (<span class="mono">ANY_REGION</span> in this demo account; <span class="mono">AWS_US</span> or <span class="mono">DISABLED</span> for stricter residency).</p>
+    </div>
+    <div class="notes-list">
+      <div class="note-i"><div class="n">1</div><div><b>Set-based, nothing to tune</b><span>One statement classifies the whole batch. Cortex parallelizes it, so there's no batch size or worker pool in our code.</span></div></div>
+      <div class="note-i"><div class="n">2</div><div><b>The model is a config value</b><span>It comes from the champion's row in <span class="mono">CLASSIFIER_CONFIG</span>. Trying another provider's model is a <span class="mono">REGISTER_CONFIG</span> call, with no API keys or SDK.</span></div></div>
+      <div class="note-i"><div class="n">3</div><div><b>Structured output</b><span>The taxonomy's enum constrains the answer, which is why every label in the build is a valid subtheme. The result is a VARIANT, parsed with SQL.</span></div></div>
+      <div class="note-i"><div class="n">4</div><div><b>Errors are rows</b><span>A failed call comes back as an error value, lands in <span class="mono">CLASSIFICATION_RAW</span> with the rest and can be inspected. It doesn't fail the batch.</span></div></div>
+      <div class="note-i"><div class="n">5</div><div><b>Consumes the stream atomically</b><span>Reading the stream inside this CREATE TABLE AS statement advances its offset exactly when the results land. No checkpoint to manage.</span></div></div>
+      <div class="note-i"><div class="n">6</div><div><b>Cost by query id</b><span>The statement's query id joins to <span class="mono">CORTEX_AISQL_USAGE_HISTORY</span>, giving measured tokens and credits per run.</span></div></div>
+    </div>
+  </div>
+  <aside class="notes">This is the one line that does the AI work, and it's worth slowing down on because it's where the platform pays off. It's a SQL expression over a table: the stream of new encounters, joined to the config. Snowflake runs it in parallel, so there's no batching or worker code. The model name comes from the config row, which is how we compared Haiku and Sonnet and used GPT-5.2 for taxonomy drafts without wiring up three vendors. response_format is the enum from the taxonomy version, which is how we get zero out-of-taxonomy labels. return_error_details means a bad call becomes a row we can look at instead of an exception. Because the statement reads the stream, the offset only advances when the results commit. And the query id is how we get measured cost per run. On residency: data is stored only in the account's region. Inference routing is set by one account parameter. This demo account allows any region; a production account can pin it to AWS US or to the home region only.</aside>
   <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
 </section>
 
@@ -1293,7 +1404,7 @@ response_format =&gt; {
       </svg>
     </div>
   </div>
-  <p class="callout">The notes are synthetic, generated from a seeded spec, with no PHI. Cortex runs in-account with no egress, but no governance objects are created in this build.</p>
+  <p class="callout">The notes are synthetic, generated from a seeded spec, with no PHI. Cortex inference is governed by the account's cross-region setting, but no governance objects (masking, row access, tags) are created in this build.</p>
   <aside class="notes">Close on scope so nobody walks away overclaiming. Everything on the left is measured. On the right, the big one is the gold set: today it's model-labeled, and a nurse SME pass is what makes the eval numbers trustworthy. Next, real notes need redaction and masking, and a full-size taxonomy will raise per-encounter cost because the rubric gets longer. Good next step: pick one service line and a few hundred real notes and run exactly this loop.</aside>
   <div class="foot"><span>PAN Lines Theme Pipeline</span><span class="num"></span></div>
 </section>
